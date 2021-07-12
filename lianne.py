@@ -25,13 +25,24 @@ class pbs_parameters:
 
     def __init__(self, pathStd, select, ncpus, mem, email, sendMode, name, queue):
 
+        # ARGUMENTS
+        # 
+        # pathStd = Folder path where stdin and stderr files will be created - String
+        # select = Numebr of chunks request for PBS - Integer
+        # ncpus = Number of cpus request for PBS - Integer
+        # mem = Amount of RAM request for PBS in Gb - Integer
+        # email = email adress used by PBS to send the email - String
+        # sendMode = Send parameter mode 'abe' - String
+        # name = Job name - String
+        # queue = Queue to use on cluster - workq or gpuq 
+
         self.pathStdout = os.path.join(pathStd, 'stdout')
         self.pathStderr = os.path.join(pathStd, 'stderr')
         self.resources = 'select='+str(select)+':ncpus='+str(ncpus)+':mem='+str(mem)
         self.email = email
-        # self.sendMode = sendMode
+        self.sendMode = sendMode
         self.name = name
-        # self.queue = queue
+        self.queue = queue
 
     def getStdout(self):
         return self.pathStdout
