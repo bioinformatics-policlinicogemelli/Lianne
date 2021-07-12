@@ -23,7 +23,7 @@ TMP = '/data/novaseq/Diagnostic/NovaSeq/Results/tmp'
 
 class pbs_parameters:
 
-    def __init__(self, pathStd, select, ncpus, mem, email, name, sendMode, queue):
+    def __init__(self, pathStd, select, ncpus, mem, email, sendMode, name, queue):
 
         self.pathStdout = os.path.join(pathStd, 'stdout')
         self.pathStderr = os.path.join(pathStd, 'stderr')
@@ -59,17 +59,20 @@ class pbs_parameters:
 # Functions
 # ===================================
 
-def get_folderOut(input):
-	head, tail = os.path.split(input)
+def get_folderOut(runInput):
+	head, tail = os.path.split(runInput)
 	return(tail)
 
-def main(input):
-	tail = get_folderOut(input)
+def main(runInput, select, ncpus, mem, email, sendMode, queue):
+	tail = get_folderOut(runInput)
 	print(tail)
 
-	# Demultiplexing
-	sendMode = 'ae'
-	parameters = pbs_parameters(input, 1, 2, 10, 'luciano.giaco@policlinicogemelli.it', 'test', 'ae', 'workq')
+	################
+	# DEMULTIPLEXING
+
+	# pbs parameters
+	
+	parameters = pbs_parameters(runInput, select, ncpus, mem, email, sendMode, name, queue)
 	print(parameters.getStdout())
 # 	tm = Template("#PBS -o {{ per.getStdout() }}\n\
 # #PBS -e {{ per.getStderr() }}\n\
@@ -89,11 +92,40 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Lims Management System - Lianne')
 
 	# arguments
-	parser.add_argument('-i', '--input', required=True,
+	parser.add_argument('-i', '--runInput', required=True,
 						help='NovaSeq output sequencing path')
+	parser.add_argument('-l1', '--select', required=False,
+						default = 1,
+						help='Select the number of chunks to send on PBS cluser - Default=1')
+	parser.add_argument('-l2', '--ncpus', required=False,
+						default = 24,
+						help='Select the number of ncpus to require - Default=24')
+	parser.add_argument('-l3', '--mem', required=False,
+						default = 128,
+						help='Select the amount of memory to require - Default=128')
+	parser.add_argument('-e', '--email', required=False,
+						default = 'luciano.giaco@policlinicogemelli.it',
+						help='Insert the email - Default=luciano.giaco@policlinicogemelli.it')
+	parser.add_argument('-m', '--sendMode', required=False,
+						default = 'ae',
+						help='Insert the sending email mode - Default=ae')
+	parser.add_argument('-N', '--name', required=False,
+						default = 'lianne',
+						help='Insert the job name - Default=lianne')
+	parser.add_argument('-q', '--queue', required=False,
+						default = 'workq',
+						help='Insert the queue to send job - Default=workq')
+	
+
 
 	args = parser.parse_args()
-	input = args.input
+	runInput = args.runInput
+	select = args.select
+	ncpus = args.ncpus
+	mem = args.mem
+	email = args.email
+	sendMode = args.sendMode
+	name = args.name
+	queue = args.queue
 
-
-	main(input)
+	main(runInput, select, ncpus, mem, email, sendMode, queue)
