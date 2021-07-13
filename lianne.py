@@ -74,9 +74,36 @@ def get_folderOut(runInput):
 	head, tail = os.path.split(runInput)
 	return(tail)
 
-def main(runInput, select, ncpus, mem, email, sendMode, queue):
+def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	tail = get_folderOut(runInput)
 	print(tail)
+
+def build_param_sh(parameters):
+
+	o = parameters.getStdout()
+	e = parameters.getStderr()
+	select = parameters.select()
+	ncpus = parameters.ncpus()
+	mem = parameters.mem()
+	l = 'select='+select+':ncpus='+ncpus+':mem='+mem+'\n'
+	M = parameters.email()
+	m = parameters.sendMode()
+	N = parameters.name()
+	q = parameters.queue()
+
+	sh = open('./demultiplex.sh', 'w')
+	sh.write('#! /bin/bash \n\n')
+	sh.write('#PBS -o'+o+'\n')
+	sh.write('#PBS -e'+e+'\n')
+	sh.write('#PBS -l'+l+'\n')
+	sh.write('#PBS -M'+M+'\n')
+	sh.write('#PBS -m'+m+'\n')
+	sh.write('#PBS -N'+N+'\n')
+	sh.write('#PBS -q'+q+'\n')
+	sh.close()
+
+	return(sh)
+
 
 	################
 	# DEMULTIPLEXING
@@ -84,19 +111,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, queue):
 	# pbs parameters
 	
 	parameters = pbs_parameters(runInput, select, ncpus, mem, email, sendMode, name, queue)
-	print(parameters.getStdout())
-# 	tm = Template("#PBS -o {{ per.getStdout() }}\n\
-# #PBS -e {{ per.getStderr() }}\n\
-# #PBS -M {{ per.getEmail() }}\n\
-# #PBS -m {{ per.name() }}\n\
-# #PBS -l {{ per.getResources() }}")
-# 	msg = tm.render(per=parameters)
+	sh = build_param_sh(parameters)
+	print(sh)
 
-	# print(msg)
-	
-
-#PBS -N {{ per.getName() }}\n\
-#PBS -q {{ per.getQueue() }}\n\
 
 if __name__ == '__main__':
 	# parser variable
@@ -139,4 +156,4 @@ if __name__ == '__main__':
 	name = args.name
 	queue = args.queue
 
-	main(runInput, select, ncpus, mem, email, sendMode, queue)
+	main(runInput, select, ncpus, mem, email, sendMode, name, queue)
