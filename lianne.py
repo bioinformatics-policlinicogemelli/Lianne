@@ -12,9 +12,11 @@ import os
 import argparse
 from jinja2 import Template
 
-
+# GLOBAL PATH
 RESULTS = '/data/novaseq/Diagnostic/NovaSeq/Results/'
 TMP = '/data/novaseq/tmp'
+DRAGEN = '/apps/trusight/2.2.0'
+D_RESOUCES = '/apps/trusight/2.2.0/resources'
 
 
 #####################################
@@ -96,10 +98,6 @@ def build_param_sh(parameters):
 
 	return(par)
 
-
-def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
-	tail = get_folderOut(runInput)
-
 def demultiplex_cl(runInput, tmp_fastq, samplesheet):
 	# demultiplex command line
 	
@@ -115,6 +113,10 @@ def demultiplex_cl(runInput, tmp_fastq, samplesheet):
 	d_cl = d_cl+samplesheet
 
 	return d_cl
+
+def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
+	tail = get_folderOut(runInput)
+
 	################
 	# DEMULTIPLEXING
 
@@ -143,7 +145,46 @@ def demultiplex_cl(runInput, tmp_fastq, samplesheet):
 	sh.close()
 
 	# send job
-	os.system('qsub '+d_file)
+	# os.system('qsub '+d_file)
+
+	################
+	# DRAGEN
+
+	# path management
+	
+	out_dragen = os.path.join(RESULTS, tail)
+	pathStd = pbs_parameters(out_dragen, select, ncpus, mem, email, sendMode, name, queue)
+	par = build_param_sh(parameters)
+
+	dr_file = os.path.join(tmp_path, 'dragen.sh')
+
+	dr_cl = 'module load singularity/3.7.4\n'
+	dr_cl = dr_cl+'module load openmpi/4.1.1\n'
+	dr_cl = dr_cl+'cd '+DRAGEN+'\n\n'
+	dr_cl = dr_cl+'./TruSight_Oncology_500_RUO.sh '
+	dr_cl = dr_cl+'--analysisFolder '
+	dr_cl = dr_cl+out_dragen+' '
+	dr_cl = dr_cl+'--resourcesFolder '
+	dr_cl = dr_cl+D_RESOUCES+' '
+	dr_cl = dr_cl+'--runFolder '
+	dr_cl = dr_cl+runInput+' '
+	dr_cl = dr_cl+'--engine singularity '
+	dr_cl = dr_cl+'--sampleSheet '
+	dr_cl = dr_cl+samplesheet+' '
+	dr_cl = dr_cl+'--isNovaSeq'
+
+	dr_sh = par+dr_cl
+	
+	# build sh file
+	sh = open(dr_file, 'w')
+	sh.write(dr_sh)
+	sh.close()
+
+	# send job
+	os.system('qsub '+dr_file)
+
+
+
 
 if __name__ == '__main__':
 	# parser variable
