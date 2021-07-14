@@ -14,7 +14,7 @@ from jinja2 import Template
 
 
 RESULTS = '/data/novaseq/Diagnostic/NovaSeq/Results/'
-TMP = '/data/novaseq/Diagnostic/NovaSeq/Results/tmp'
+TMP = '/data/novaseq/tmp'
 
 
 #####################################
@@ -56,7 +56,7 @@ class pbs_parameters:
     def getEmail(self):
         return self.email
 
-    def sendMode(self):
+    def getMode(self):
         return self.sendMode
 
     def getName(self):
@@ -74,46 +74,76 @@ def get_folderOut(runInput):
 	head, tail = os.path.split(runInput)
 	return(tail)
 
-def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
-	tail = get_folderOut(runInput)
-	print(tail)
-
 def build_param_sh(parameters):
 
 	o = parameters.getStdout()
 	e = parameters.getStderr()
-	select = parameters.select()
-	ncpus = parameters.ncpus()
-	mem = parameters.mem()
-	l = 'select='+select+':ncpus='+ncpus+':mem='+mem+'\n'
-	M = parameters.email()
-	m = parameters.sendMode()
-	N = parameters.name()
-	q = parameters.queue()
+	l = parameters.getResources()
+	M = parameters.getEmail()
+	m = parameters.getMode()
+	N = parameters.getName()
+	q = parameters.getQueue()
 
-	sh = open('./demultiplex.sh', 'w')
-	sh.write('#! /bin/bash \n\n')
-	sh.write('#PBS -o'+o+'\n')
-	sh.write('#PBS -e'+e+'\n')
-	sh.write('#PBS -l'+l+'\n')
-	sh.write('#PBS -M'+M+'\n')
-	sh.write('#PBS -m'+m+'\n')
-	sh.write('#PBS -N'+N+'\n')
-	sh.write('#PBS -q'+q+'\n')
-	sh.close()
+	
+	par = '#! /bin/bash \n\n'
+	par = par+'#PBS -o '+o+'\n'
+	par = par+'#PBS -e '+e+'\n'
+	par = par+'#PBS -l '+l+'\n'
+	par = par+'#PBS -M '+M+'\n'
+	par = par+'#PBS -m '+m+'\n'
+	par = par+'#PBS -N '+N+'\n'
+	par = par+'#PBS -q '+q+'\n\n'
 
-	return(sh)
+	return(par)
 
 
+def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
+	tail = get_folderOut(runInput)
+
+def demultiplex_cl(runInput, tmp_fastq, samplesheet):
+	# demultiplex command line
+	
+	d_cl = 'module load anaconda/3m\n'
+	d_cl = d_cl+'conda init bash\n'
+	d_cl = d_cl+'conda activate /data/hpc-data/shared/condaEnv/baseinstall/\n\n'
+	d_cl = d_cl+'bcl-convert '
+	d_cl = d_cl+'--bcl-input-directory '
+	d_cl = d_cl+runInput+' '
+	d_cl = d_cl+'--output-directory '
+	d_cl = d_cl+tmp_fastq+' '
+	d_cl = d_cl+'--sample-sheet '
+	d_cl = d_cl+samplesheet
+
+	return d_cl
 	################
 	# DEMULTIPLEXING
 
-	# pbs parameters
-	
-	parameters = pbs_parameters(runInput, select, ncpus, mem, email, sendMode, name, queue)
-	sh = build_param_sh(parameters)
-	print(sh)
+	# path management
+	tmp_path = os.path.join(TMP, tail)
+	os.mkdir(tmp_path, mode = 0o755)
 
+	tmp_fastq = os.path.join(tmp_path, 'fastq')
+	#os.mkdir(tmp_fastq, mode = 0o755)
+
+	d_file = os.path.join(tmp_path, 'demultiplex.sh')
+	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
+
+
+	# pbs parameters
+	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue)
+	par = build_param_sh(parameters)
+
+	# command line
+	d_cl = demultiplex_cl(runInput, tmp_fastq, samplesheet)
+	d_sh = par+d_cl
+
+	# build sh file
+	sh = open(d_file, 'w')
+	sh.write(d_sh)
+	sh.close()
+
+	# send job
+	os.system('qsub '+d_file)
 
 if __name__ == '__main__':
 	# parser variable
@@ -122,13 +152,13 @@ if __name__ == '__main__':
 	# arguments
 	parser.add_argument('-i', '--runInput', required=True,
 						help='NovaSeq output sequencing path')
-	parser.add_argument('-l1', '--select', required=False,
+	parser.add_argument('-l_select', '--select', required=False,
 						default = 1,
 						help='Select the number of chunks to send on PBS cluser - Default=1')
-	parser.add_argument('-l2', '--ncpus', required=False,
+	parser.add_argument('-l_ncpus', '--ncpus', required=False,
 						default = 24,
 						help='Select the number of ncpus to require - Default=24')
-	parser.add_argument('-l3', '--mem', required=False,
+	parser.add_argument('-l_mem', '--mem', required=False,
 						default = 128,
 						help='Select the amount of memory to require - Default=128')
 	parser.add_argument('-e', '--email', required=False,
