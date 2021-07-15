@@ -1,12 +1,11 @@
 # LIANNE
 
-*** LIms mANagemenNt systEm ***
+***LIms mANagemenNt systEm*** 
 
 ## Usage
 
 
-´´´
-
+```
 usage: lianne.py [-h] -i RUNINPUT [-l1 SELECT] [-l2 NCPUS] [-l3 MEM]
                  [-e EMAIL] [-m SENDMODE] [-N NAME] [-q QUEUE]
 
@@ -30,8 +29,7 @@ optional arguments:
   -N NAME, --name NAME  Insert the job name - Default=lianne
   -q QUEUE, --queue QUEUE
                         Insert the queue to send job - Default=workq
-
-´´´
+```
 
 
 
