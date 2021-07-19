@@ -122,6 +122,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 
 	# path management
 	tmp_path = os.path.join(TMP, tail)
+	tmp_path = os.path.normpath(tmp_path)
 	os.mkdir(tmp_path, mode = 0o755)
 
 	tmp_fastq = os.path.join(tmp_path, 'fastq')
