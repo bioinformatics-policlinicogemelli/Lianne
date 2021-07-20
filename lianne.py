@@ -10,7 +10,7 @@ version = "0.1"
 
 import os
 import argparse
-from jinja2 import Template
+from shutil import copyfile
 
 # GLOBAL PATH
 RESULTS = '/data/novaseq/Diagnostic/NovaSeq/Results/'
@@ -114,6 +114,28 @@ def demultiplex_cl(runInput, tmp_fastq, samplesheet):
 
 	return d_cl
 
+def samplesheet_mamage(samplesheet):
+	if os.path.isfile(samplesheet):
+		return True
+	else:
+		# run folder list
+		dirlist = os.listdir(runInput)
+		# extract csv files
+		matching = [s for s in dirlist if ".csv" in s]
+		# control if there are more then one csv file
+		# if not, copy the csv found with SampleSheet.csv name
+		if len(matching) != 1:
+			print('# WARNING - More than one csv file found\n# INFO exit')
+			os.sys.exit()
+		else:
+			src = os.path.join(runInput, matching[0])
+			copyfile(src, samplesheet)
+		return [False, src]
+
+####################
+##  --> MAIN <--  ##
+####################
+
 def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	tail = get_folderOut(runInput)
 
@@ -123,14 +145,21 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# path management
 	tmp_path = os.path.join(TMP, tail)
 	tmp_path = os.path.normpath(tmp_path)
-	os.mkdir(tmp_path, mode = 0o755)
+	#os.mkdir(tmp_path, mode = 0o755)
 
 	tmp_fastq = os.path.join(tmp_path, 'fastq')
 	#os.mkdir(tmp_fastq, mode = 0o755)
 
 	d_file = os.path.join(tmp_path, 'demultiplex.sh')
-	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
 
+	# sample sheet check
+	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
+	control = samplesheet_mamage(samplesheet)
+	if control[0] is False:
+		print('# INFO - Found a SampleSheet with different name\n# INFO - '+control[1]+' copied as SampleSheet.csv')
+
+
+	os.sys.exit()
 
 	# pbs parameters
 	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue)
