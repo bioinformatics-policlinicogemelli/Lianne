@@ -116,7 +116,7 @@ def demultiplex_cl(runInput, tmp_fastq, samplesheet):
 
 def samplesheet_mamage(samplesheet):
 	if os.path.isfile(samplesheet):
-		return True
+		return [True]
 	else:
 		# run folder list
 		dirlist = os.listdir(runInput)
@@ -131,6 +131,24 @@ def samplesheet_mamage(samplesheet):
 			src = os.path.join(runInput, matching[0])
 			copyfile(src, samplesheet)
 		return [False, src]
+
+def dragen_cl(out_dragen, runInput, samplesheet):
+	dr_cl = 'module load singularity/3.7.4\n'
+	dr_cl = dr_cl+'module load openmpi/4.1.1\n'
+	dr_cl = dr_cl+'cd '+DRAGEN+'\n\n'
+	dr_cl = dr_cl+'./TruSight_Oncology_500_RUO.sh '
+	dr_cl = dr_cl+'--analysisFolder '
+	dr_cl = dr_cl+out_dragen+' '
+	dr_cl = dr_cl+'--resourcesFolder '
+	dr_cl = dr_cl+D_RESOUCES+' '
+	dr_cl = dr_cl+'--runFolder '
+	dr_cl = dr_cl+runInput+' '
+	dr_cl = dr_cl+'--engine singularity '
+	dr_cl = dr_cl+'--sampleSheet '
+	dr_cl = dr_cl+samplesheet+' '
+	dr_cl = dr_cl+'--isNovaSeq'
+
+	return(dr_cl)
 
 ####################
 ##  --> MAIN <--  ##
@@ -155,11 +173,10 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# sample sheet check
 	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
 	control = samplesheet_mamage(samplesheet)
-	if control[0] is False:
+	print(control)
+	if control[0] == False:
 		print('# INFO - Found a SampleSheet with different name\n# INFO - '+control[1]+' copied as SampleSheet.csv')
 
-
-	os.sys.exit()
 
 	# pbs parameters
 	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue)
@@ -169,10 +186,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	d_cl = demultiplex_cl(runInput, tmp_fastq, samplesheet)
 	d_sh = par+d_cl
 
+################################
+### DECOMMENTA
 	# build sh file
-	sh = open(d_file, 'w')
-	sh.write(d_sh)
-	sh.close()
+	# sh = open(d_file, 'w')
+	# sh.write(d_sh)
+	# sh.close()
 
 	# send job
 	# os.system('qsub '+d_file)
@@ -184,27 +203,15 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	
 	out_dragen = os.path.join(RESULTS, tail)
 	pathStd = pbs_parameters(out_dragen, select, ncpus, mem, email, sendMode, name, queue)
-	par = build_param_sh(parameters)
+	par = build_param_sh(pathStd)
 
 	dr_file = os.path.join(tmp_path, 'dragen.sh')
 
-	dr_cl = 'module load singularity/3.7.4\n'
-	dr_cl = dr_cl+'module load openmpi/4.1.1\n'
-	dr_cl = dr_cl+'cd '+DRAGEN+'\n\n'
-	dr_cl = dr_cl+'./TruSight_Oncology_500_RUO.sh '
-	dr_cl = dr_cl+'--analysisFolder '
-	dr_cl = dr_cl+out_dragen+' '
-	dr_cl = dr_cl+'--resourcesFolder '
-	dr_cl = dr_cl+D_RESOUCES+' '
-	dr_cl = dr_cl+'--runFolder '
-	dr_cl = dr_cl+runInput+' '
-	dr_cl = dr_cl+'--engine singularity '
-	dr_cl = dr_cl+'--sampleSheet '
-	dr_cl = dr_cl+samplesheet+' '
-	dr_cl = dr_cl+'--isNovaSeq'
-
+	dr_cl = dragen_cl(out_dragen, runInput, samplesheet)
 	dr_sh = par+dr_cl
-	
+	print(dr_sh)
+	os.sys.exit()
+
 	# build sh file
 	sh = open(dr_file, 'w')
 	sh.write(dr_sh)
