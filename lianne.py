@@ -221,6 +221,14 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	os.system('qsub '+dr_file)
 
 
+	################
+	# Upload to CGW
+
+	# patn management
+
+	
+
+
 
 
 if __name__ == '__main__':
