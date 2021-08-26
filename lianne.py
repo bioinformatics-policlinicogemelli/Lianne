@@ -15,7 +15,7 @@ from shutil import copyfile
 # GLOBAL PATH
 RESULTS = '/data/novaseq/Diagnostic/NovaSeq/Results/'
 TMP = '/data/novaseq/tmp'
-DRAGEN = '/apps/trusight/2.2.0'
+LOCAL_APP = '/apps/trusight/2.2.0'
 D_RESOUCES = '/apps/trusight/2.2.0/resources'
 
 
@@ -98,23 +98,28 @@ def build_param_sh(parameters):
 
 	return(par)
 
-def demultiplex_cl(runInput, tmp_fastq, samplesheet):
+def demultiplex_cl(tmp_fastq, runInput, samplesheet):
 	# demultiplex command line
 	
-	d_cl = 'module load anaconda/3m\n'
-	d_cl = d_cl+'conda init bash\n'
-	d_cl = d_cl+'conda activate /data/hpc-data/shared/condaEnv/baseinstall/\n\n'
-	d_cl = d_cl+'bcl-convert '
-	d_cl = d_cl+'--bcl-input-directory '
-	d_cl = d_cl+runInput+' '
-	d_cl = d_cl+'--output-directory '
+	d_cl = 'module load singularity/3.7.4\n'
+	d_cl = d_cl+'module load openmpi/4.1.1\n'
+	d_cl = d_cl+'cd '+LOCAL_APP+'\n\n'
+	d_cl = d_cl+'./TruSight_Oncology_500_RUO.sh '
+	d_cl = d_cl+'--analysisFolder '
 	d_cl = d_cl+tmp_fastq+' '
-	d_cl = d_cl+'--sample-sheet '
-	d_cl = d_cl+samplesheet
+	d_cl = d_cl+'--resourcesFolder '
+	d_cl = d_cl+D_RESOUCES+' '
+	d_cl = d_cl+'--runFolder '
+	d_cl = d_cl+runInput+' '
+	d_cl = d_cl+'--engine singularity '
+	d_cl = d_cl+'--sampleSheet '
+	d_cl = d_cl+samplesheet+' '
+	d_cl = d_cl+'--isNovaSeq '
+	d_cl = d_cl+'--demultiplexOnly'
 
 	return d_cl
 
-def samplesheet_mamage(samplesheet):
+def samplesheet_manage(samplesheet):
 	if os.path.isfile(samplesheet):
 		return [True]
 	else:
@@ -132,13 +137,13 @@ def samplesheet_mamage(samplesheet):
 			copyfile(src, samplesheet)
 		return [False, src]
 
-def dragen_cl(out_dragen, runInput, samplesheet):
+def localApp_cl(out_localApp, runInput, samplesheet):
 	dr_cl = 'module load singularity/3.7.4\n'
 	dr_cl = dr_cl+'module load openmpi/4.1.1\n'
-	dr_cl = dr_cl+'cd '+DRAGEN+'\n\n'
+	dr_cl = dr_cl+'cd '+LOCAL_APP+'\n\n'
 	dr_cl = dr_cl+'./TruSight_Oncology_500_RUO.sh '
 	dr_cl = dr_cl+'--analysisFolder '
-	dr_cl = dr_cl+out_dragen+' '
+	dr_cl = dr_cl+out_localApp+' '
 	dr_cl = dr_cl+'--resourcesFolder '
 	dr_cl = dr_cl+D_RESOUCES+' '
 	dr_cl = dr_cl+'--runFolder '
@@ -172,8 +177,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 
 	# sample sheet check
 	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
-	control = samplesheet_mamage(samplesheet)
-	print(control)
+	control = samplesheet_manage(samplesheet)
+	
 	if control[0] == False:
 		print('# INFO - Found a SampleSheet with different name\n# INFO - '+control[1]+' copied as SampleSheet.csv')
 
@@ -183,31 +188,36 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	par = build_param_sh(parameters)
 
 	# command line
-	d_cl = demultiplex_cl(runInput, tmp_fastq, samplesheet)
+	d_cl = demultiplex_cl(tmp_fastq, runInput, samplesheet)
 	d_sh = par+d_cl
+	
+	
 
 ################################
 ### DECOMMENTA
 	# build sh file
-	# sh = open(d_file, 'w')
-	# sh.write(d_sh)
-	# sh.close()
+	sh = open(d_file, 'w')
+	sh.write(d_sh)
+	sh.close()
 
 	# send job
-	# os.system('qsub '+d_file)
-
+	print('[INFO] Sending '+d_file)
+	os.system('qsub '+d_file)
+	print('[INFO] Queue:')
+	os.system('qstat')
+	os.sys.exit()
 	################
-	# DRAGEN
+	# localApp
 
 	# path management
 	
-	out_dragen = os.path.join(RESULTS, tail)
-	pathStd = pbs_parameters(out_dragen, select, ncpus, mem, email, sendMode, name, queue)
+	out_localApp = os.path.join(RESULTS, tail)
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue)
 	par = build_param_sh(pathStd)
 
-	dr_file = os.path.join(tmp_path, 'dragen.sh')
+	dr_file = os.path.join(tmp_path, 'localApp.sh')
 
-	dr_cl = dragen_cl(out_dragen, runInput, samplesheet)
+	dr_cl = localApp_cl(out_localApp, runInput, samplesheet)
 	dr_sh = par+dr_cl
 	print(dr_sh)
 	os.sys.exit()
