@@ -10,6 +10,7 @@ version = "0.1"
 
 import os
 import argparse
+import subprocess
 from shutil import copyfile
 
 # GLOBAL PATH
@@ -166,14 +167,17 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# DEMULTIPLEXING
 
 	# path management
-	tmp_path = os.path.join(TMP, tail)
+	# analysis folder will created
+	# eg. analysis_210729_A01423_0009_AH33WGDRXY
+	tmp_path = os.path.join(TMP, 'analysis_'+tail)
 	tmp_path = os.path.normpath(tmp_path)
-	#os.mkdir(tmp_path, mode = 0o755)
+	os.mkdir(tmp_path, mode = 0o755)
+	print(tmp_path)
 
-	tmp_fastq = os.path.join(tmp_path, 'fastq')
-	#os.mkdir(tmp_fastq, mode = 0o755)
-
-	d_file = os.path.join(tmp_path, 'demultiplex.sh')
+	# path folder used in d_file as --analysisFolder parameter
+	tmp_fastq = os.path.join(tmp_path, tail)
+	print(tmp_fastq)
+	
 
 	# sample sheet check
 	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
@@ -190,21 +194,33 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# command line
 	d_cl = demultiplex_cl(tmp_fastq, runInput, samplesheet)
 	d_sh = par+d_cl
+	print(d_sh)
 	
 	
 
 ################################
-### DECOMMENTA
+### QSUB JOBS
+
+	################
+	# Demultiplexing
+
 	# build sh file
+	d_file = os.path.join(tmp_path, 'demultiplex.sh')
 	sh = open(d_file, 'w')
 	sh.write(d_sh)
 	sh.close()
-
-	# send job
+	
+	# Demultiplexing job
 	print('[INFO] Sending '+d_file)
-	os.system('qsub '+d_file)
+	
+	# Capture the job ID for qsub hold
+	jobid = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
+
 	print('[INFO] Queue:')
-	os.system('qstat')
+	subprocess.run(['qstat'])
+	
+
+
 	os.sys.exit()
 	################
 	# localApp
@@ -220,15 +236,15 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	dr_cl = localApp_cl(out_localApp, runInput, samplesheet)
 	dr_sh = par+dr_cl
 	print(dr_sh)
-	os.sys.exit()
+	# os.sys.exit()
 
 	# build sh file
 	sh = open(dr_file, 'w')
 	sh.write(dr_sh)
 	sh.close()
-
+	print(dr_file)
 	# send job
-	os.system('qsub '+dr_file)
+	# os.system('qsub '+dr_file)
 
 
 	################
