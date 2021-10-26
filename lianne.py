@@ -14,8 +14,8 @@ import subprocess
 from shutil import copyfile
 
 # GLOBAL PATH
-RESULTS = '/data/novaseq/Diagnostic/NovaSeq/Results/'
-TMP = '/data/novaseq/tmp'
+RESULTS = '/data/novaseq_results/'
+TMP = '/data/novaseq_results/tmp'
 LOCAL_APP = '/apps/trusight/2.2.0'
 D_RESOUCES = '/apps/trusight/2.2.0/resources'
 
@@ -26,7 +26,7 @@ D_RESOUCES = '/apps/trusight/2.2.0/resources'
 
 class pbs_parameters:
 
-    def __init__(self, pathStd, select, ncpus, mem, email, sendMode, name, queue):
+    def __init__(self, pathStd, select, ncpus, mem, email, sendMode, name, queue, m):
 
         # ARGUMENTS
         # 
@@ -39,12 +39,12 @@ class pbs_parameters:
         # name = Job name - String
         # queue = Queue to use on cluster - workq or gpuq 
 
-        self.pathStdout = os.path.join(pathStd, 'stdout')
-        self.pathStderr = os.path.join(pathStd, 'stderr')
+        self.pathStdout = os.path.join(pathStd, 'stdout_'+m)
+        self.pathStderr = os.path.join(pathStd, 'stderr_'+m)
         self.resources = 'select='+str(select)+':ncpus='+str(ncpus)+':mem='+str(mem)
         self.email = email
         self.sendMode = sendMode
-        self.name = name
+        self.name = name+'_'+m
         self.queue = queue
 
     def getStdout(self):
@@ -171,9 +171,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# eg. analysis_210729_A01423_0009_AH33WGDRXY
 	tmp_path = os.path.join(TMP, 'analysis_'+tail)
 	tmp_path = os.path.normpath(tmp_path)
-	os.mkdir(tmp_path, mode = 0o755)
-	print(tmp_path)
-
+	try:
+		os.mkdir(tmp_path, mode = 0o755)
+	except FileExistsError:
+		print('[WARNING] directory '+tmp_path+' already exists')
+		pass
+	
 	# path folder used in d_file as --analysisFolder parameter
 	tmp_fastq = os.path.join(tmp_path, tail)
 	print(tmp_fastq)
@@ -188,7 +191,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 
 
 	# pbs parameters
-	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue)
+	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'demultiplex')
 	par = build_param_sh(parameters)
 
 	# command line
@@ -214,21 +217,22 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	print('[INFO] Sending '+d_file)
 	
 	# Capture the job ID for qsub hold
-	jobid = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
+	# jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
 
 	print('[INFO] Queue:')
 	subprocess.run(['qstat'])
 	
 
 
-	os.sys.exit()
+	
 	################
 	# localApp
 
 	# path management
 	
 	out_localApp = os.path.join(RESULTS, tail)
-	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue)
+	select = 2
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'LocalApp')
 	par = build_param_sh(pathStd)
 
 	dr_file = os.path.join(tmp_path, 'localApp.sh')
@@ -236,6 +240,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	dr_cl = localApp_cl(out_localApp, runInput, samplesheet)
 	dr_sh = par+dr_cl
 	print(dr_sh)
+	print('outlocalapp:')
+	print(out_localApp)
 	# os.sys.exit()
 
 	# build sh file
@@ -244,15 +250,52 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	sh.close()
 	print(dr_file)
 	# send job
-	# os.system('qsub '+dr_file)
-
+	jobid1 = 'fakeID'
+	dependencyID = 'depend=afterany:'+jobid1
+	# jobid = subprocess.run(['qsub', '-W', dependencyID, dr_file], stdout=subprocess.PIPE, universal_newlines=True)
+	# print(dependencyID)
+	
 
 	################
 	# Upload to CGW
-
-	# patn management
-
 	
+
+	# pbs parameters
+	select = 1
+	ncpus = 5
+	mem = '80g'
+	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'cgwUpload')
+	par = build_param_sh(parameters)
+	print(par)
+
+	dr_cl = 'module load corretto/8.292.10.1\n'
+	dr_cl = dr_cl+'cd /data/hpc-share/illumina/test/pdx/CGWRunUploader\n'
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'java -jar '
+	dr_cl = dr_cl+'-Dloader.main=com.pdx.commandLine.ApplicationCommandLine RunUploader-1.13.jar '
+	dr_cl = dr_cl+'--commandLine '
+	dr_cl = dr_cl+'--runFolder='+out_localApp+' '
+	dr_cl = dr_cl+'--sequencer=Illumina '
+	dr_cl = dr_cl+'--sequencerFileType=fastq'
+
+	print(dr_cl)
+
+	# path management
+	cgw_file = os.path.join(tmp_path, 'cgw_uploader.sh')
+	# build sh file
+	sh = open(cgw_file, 'w')
+	sh.write(dr_sh)
+	sh.close()
+	
+	print(cgw_file)
+
+
+	os.sys.exit()
+	# build 
+	# tmp_fastq
+
+	################
+	# 	
 
 
 
@@ -271,7 +314,7 @@ if __name__ == '__main__':
 						default = 24,
 						help='Select the number of ncpus to require - Default=24')
 	parser.add_argument('-l_mem', '--mem', required=False,
-						default = 128,
+						default = '128g',
 						help='Select the amount of memory to require - Default=128')
 	parser.add_argument('-e', '--email', required=False,
 						default = 'luciano.giaco@policlinicogemelli.it',
