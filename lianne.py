@@ -120,7 +120,7 @@ def demultiplex_cl(tmp_fastq, runInput, samplesheet):
 
 	return d_cl
 
-def samplesheet_manage(samplesheet):
+def samplesheet_manage(samplesheet, tmp_path):
 	if os.path.isfile(samplesheet):
 		return [True]
 	else:
@@ -135,8 +135,9 @@ def samplesheet_manage(samplesheet):
 			os.sys.exit()
 		else:
 			src = os.path.join(runInput, matching[0])
+			samplesheet = os.path.join(tmp_path, 'SampleSheet.csv')
 			copyfile(src, samplesheet)
-		return [False, src]
+		return [False, samplesheet]
 
 def localApp_cl(out_localApp, runInput, samplesheet):
 	dr_cl = 'module load singularity/3.7.4\n'
@@ -179,16 +180,26 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	
 	# path folder used in d_file as --analysisFolder parameter
 	tmp_fastq = os.path.join(tmp_path, tail)
-	print(tmp_fastq)
+	# print(tmp_fastq)
 	
 
 	# sample sheet check
 	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
-	control = samplesheet_manage(samplesheet)
+	control = samplesheet_manage(samplesheet, tmp_path)
 	
 	if control[0] == False:
-		print('# INFO - Found a SampleSheet with different name\n# INFO - '+control[1]+' copied as SampleSheet.csv')
+		print('# INFO - Found a SampleSheet with different name\n# INFO - '+control[1]+' copied')
+		samplesheet = control[1]
+	
+	
+	
+	
 
+################################
+### QSUB JOBS
+
+	################
+	# Demultiplexing
 
 	# pbs parameters
 	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'demultiplex')
@@ -198,14 +209,6 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	d_cl = demultiplex_cl(tmp_fastq, runInput, samplesheet)
 	d_sh = par+d_cl
 	print(d_sh)
-	
-	
-
-################################
-### QSUB JOBS
-
-	################
-	# Demultiplexing
 
 	# build sh file
 	d_file = os.path.join(tmp_path, 'demultiplex.sh')
@@ -217,8 +220,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	print('[INFO] Sending '+d_file)
 	
 	# Capture the job ID for qsub hold
-	# jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
-
+	jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
+	jobid1_str = jobid1.stdout
 	print('[INFO] Queue:')
 	subprocess.run(['qstat'])
 	
@@ -242,7 +245,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	print(dr_sh)
 	print('outlocalapp:')
 	print(out_localApp)
-	# os.sys.exit()
+	
 
 	# build sh file
 	sh = open(dr_file, 'w')
@@ -250,9 +253,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	sh.close()
 	print(dr_file)
 	# send job
-	jobid1 = 'fakeID'
-	dependencyID = 'depend=afterany:'+jobid1
-	# jobid = subprocess.run(['qsub', '-W', dependencyID, dr_file], stdout=subprocess.PIPE, universal_newlines=True)
+	# jobid1 = 'fakeID'
+	dependencyID = 'depend=afterany:'+jobid1_str
+	jobid2 = subprocess.run(['qsub', '-W', dependencyID, dr_file], stdout=subprocess.PIPE, universal_newlines=True)
 	# print(dependencyID)
 	
 
@@ -274,7 +277,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	dr_cl = dr_cl+'java -jar '
 	dr_cl = dr_cl+'-Dloader.main=com.pdx.commandLine.ApplicationCommandLine RunUploader-1.13.jar '
 	dr_cl = dr_cl+'--commandLine '
-	dr_cl = dr_cl+'--runFolder='+out_localApp+' '
+	dr_cl = dr_cl+'--runFolder='+tmp_fastq+' '
 	dr_cl = dr_cl+'--sequencer=Illumina '
 	dr_cl = dr_cl+'--sequencerFileType=fastq'
 
