@@ -1,0 +1,5 @@
+######### 2021.10.21
+
+Added Mosdepth to calculate coverage at 50x 100x 150x 500x
+Ref.
+Brent S Pedersen, Aaron R Quinlan, Mosdepth: quick coverage calculation for genomes and exomes, Bioinformatics, Volume 34, Issue 5, 01 March 2018, Pages 867–868, https://doi.org/10.1093/bioinformatics/btx699
