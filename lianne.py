@@ -120,7 +120,7 @@ def demultiplex_cl(tmp_fastq, runInput, samplesheet):
 
 	return d_cl
 
-def samplesheet_manage(samplesheet, tmp_path):
+def samplesheet_manage(samplesheet, tmp_path, debug):
 	if os.path.isfile(samplesheet):
 		return [True]
 	else:
@@ -136,7 +136,8 @@ def samplesheet_manage(samplesheet, tmp_path):
 		else:
 			src = os.path.join(runInput, matching[0])
 			samplesheet = os.path.join(tmp_path, 'SampleSheet.csv')
-			copyfile(src, samplesheet)
+			if debug is False:
+				copyfile(src, samplesheet)
 		return [False, samplesheet]
 
 def localApp_cl(out_localApp, runInput, samplesheet):
@@ -161,7 +162,9 @@ def localApp_cl(out_localApp, runInput, samplesheet):
 ##  --> MAIN <--  ##
 ####################
 
-def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
+def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
+	
+	
 	tail = get_folderOut(runInput)
 
 	################
@@ -172,20 +175,25 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# eg. analysis_210729_A01423_0009_AH33WGDRXY
 	tmp_path = os.path.join(TMP, 'analysis_'+tail)
 	tmp_path = os.path.normpath(tmp_path)
-	try:
-		os.mkdir(tmp_path, mode = 0o755)
-	except FileExistsError:
-		print('[WARNING] directory '+tmp_path+' already exists')
-		pass
+
+	if debug is False:
+		try:
+			os.mkdir(tmp_path, mode = 0o755)
+		except FileExistsError:
+			print('[WARNING] directory '+tmp_path+' already exists')
+			pass
 	
 	# path folder used in d_file as --analysisFolder parameter
 	tmp_fastq = os.path.join(tmp_path, tail)
-	# print(tmp_fastq)
+	if debug is True:
+		print('[DEBUG] path folder used in d_file as --analysisFolder parameter')
+		print(tmp_fastq)
+		print('\n')
 	
 
 	# sample sheet check
 	samplesheet = os.path.join(runInput, 'SampleSheet.csv')
-	control = samplesheet_manage(samplesheet, tmp_path)
+	control = samplesheet_manage(samplesheet, tmp_path, debug)
 	
 	if control[0] == False:
 		print('# INFO - Found a SampleSheet with different name\n# INFO - '+control[1]+' copied')
@@ -208,25 +216,38 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	# command line
 	d_cl = demultiplex_cl(tmp_fastq, runInput, samplesheet)
 	d_sh = par+d_cl
-	print(d_sh)
+
+	## DEBUG
+	if debug is True:
+		print('[DEBUG] Demultiplexing PBS parameters')
+		print(par)
+		print('\n')
 
 	# build sh file
 	d_file = os.path.join(tmp_path, 'demultiplex.sh')
-	sh = open(d_file, 'w')
-	sh.write(d_sh)
-	sh.close()
-	
-	# Demultiplexing job
-	print('[INFO] Sending '+d_file)
-	
-	# Capture the job ID for qsub hold
-	jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
-	jobid1_str = jobid1.stdout
-	print('[INFO] Queue:')
-	subprocess.run(['qstat'])
-	
 
+	## DEBUG
+	if debug is False:
+		sh = open(d_file, 'w')
+		sh.write(d_sh)
+		sh.close()
+	
+		# Demultiplexing job
+		print('[INFO] Sending '+d_file)
+	
+		# Capture the job ID for qsub hold
+		jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid1_str = jobid1.stdout
+		print('[INFO] Queue:')
+		subprocess.run(['qstat'])
+	else:
+		print('[DEBUG] sh file written in foder: ')
+		print(d_file)
+		print('[DEBUG] sh file contains: ')
+		print(d_sh)
+		print('\n\n\n')
 
+	
 	
 	################
 	# localApp
@@ -238,26 +259,39 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'LocalApp')
 	par = build_param_sh(pathStd)
 
+	## DEBUG
+	if debug is True:
+		print('[DEBUG] Local App PBS parameters')
+		print(par)
+		print('\n')
+
+	# path local app sh file
 	dr_file = os.path.join(tmp_path, 'localApp.sh')
 
+	# local app command line
 	dr_cl = localApp_cl(out_localApp, runInput, samplesheet)
-	dr_sh = par+dr_cl
-	print(dr_sh)
-	print('outlocalapp:')
-	print(out_localApp)
-	
 
-	# build sh file
-	sh = open(dr_file, 'w')
-	sh.write(dr_sh)
-	sh.close()
-	print(dr_file)
-	# send job
-	# jobid1 = 'fakeID'
-	dependencyID = 'depend=afterany:'+jobid1_str
-	jobid2 = subprocess.run(['qsub', '-W', dependencyID, dr_file], stdout=subprocess.PIPE, universal_newlines=True)
-	# print(dependencyID)
-	
+	# sh file to send
+	dr_sh = par+dr_cl
+
+	if debug is False:
+		# build sh file
+		sh = open(dr_file, 'w')
+		sh.write(dr_sh)
+		sh.close()
+
+		# send job
+		jobid2 = subprocess.run(['qsub', dr_file], stdout=subprocess.PIPE, universal_newlines=True)
+		# print(dependencyID)
+	else:
+		print('[DEBUG] localApp file written in foder: ')
+		print(dr_file)
+		print('[DEBUG] localApp file contains:')
+		print(dr_sh)
+		print('[DEBUG] output folder of local app:')
+		print(out_localApp)
+
+
 
 	################
 	# Upload to CGW
@@ -269,7 +303,13 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	mem = '80g'
 	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'cgwUpload')
 	par = build_param_sh(parameters)
-	print(par)
+
+	## DEBUG
+	if debug is True:
+		print('[DEBUG] CGWRunUploader PBS parameters')
+		print(par)
+		print('\n')
+
 
 	dr_cl = 'module load corretto/8.292.10.1\n'
 	dr_cl = dr_cl+'cd /data/hpc-share/illumina/test/pdx/CGWRunUploader\n'
@@ -281,16 +321,24 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue):
 	dr_cl = dr_cl+'--sequencer=Illumina '
 	dr_cl = dr_cl+'--sequencerFileType=fastq'
 
-	print(dr_cl)
 
 	# path management
 	cgw_file = os.path.join(tmp_path, 'cgw_uploader.sh')
-	# build sh file
-	sh = open(cgw_file, 'w')
-	sh.write(dr_sh)
-	sh.close()
-	
-	print(cgw_file)
+
+	if debug is False:
+		# build sh file
+		sh = open(cgw_file, 'w')
+		sh.write(dr_cl)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid1_str
+		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cgw_file], stdout=subprocess.PIPE, universal_newlines=True)
+	else:
+		print('[DEBUG] cgw_uploader.sh file written in foder: ')
+		print(cgw_file)
+		print('[DEBUG] cgw_uploader.sh file contains:')
+		print(dr_cl)
+		print('[DEBUG] output folder of local app:')
+
 
 
 	os.sys.exit()
@@ -331,7 +379,9 @@ if __name__ == '__main__':
 	parser.add_argument('-q', '--queue', required=False,
 						default = 'workq',
 						help='Insert the queue to send job - Default=workq')
-	
+	parser.add_argument('-d', '--debug', required=False,
+						action='store_true',
+						help='Run the script in debug mode\nNo jobs will be send\nNo file will be written - Default=False')
 
 
 	args = parser.parse_args()
@@ -343,5 +393,6 @@ if __name__ == '__main__':
 	sendMode = args.sendMode
 	name = args.name
 	queue = args.queue
+	debug = args.debug
 
-	main(runInput, select, ncpus, mem, email, sendMode, name, queue)
+	main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug)
