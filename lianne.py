@@ -11,6 +11,7 @@ version = "0.1"
 import os
 import argparse
 import subprocess
+import make_seq_details
 from shutil import copyfile
 
 # GLOBAL PATH
@@ -321,14 +322,14 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'--sequencer=Illumina '
 	dr_cl = dr_cl+'--sequencerFileType=fastq'
 
-
+	dr_sh = par+dr_cl
 	# path management
 	cgw_file = os.path.join(tmp_path, 'cgw_uploader.sh')
 
 	if debug is False:
 		# build sh file
 		sh = open(cgw_file, 'w')
-		sh.write(dr_cl)
+		sh.write(dr_sh)
 		sh.close()
 		dependencyID = 'depend=afterany:'+jobid1_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cgw_file], stdout=subprocess.PIPE, universal_newlines=True)
@@ -336,12 +337,18 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] cgw_uploader.sh file written in foder: ')
 		print(cgw_file)
 		print('[DEBUG] cgw_uploader.sh file contains:')
-		print(dr_cl)
-		print('[DEBUG] output folder of local app:')
-
+		print(dr_sh)
+		
 
 
 	os.sys.exit()
+	################
+	# BUILD CSV 
+
+	# seq details
+	make_seq_details.main(samplesheet)
+
+	
 	# build 
 	# tmp_fastq
 
