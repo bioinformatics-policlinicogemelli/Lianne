@@ -416,7 +416,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 if __name__ == '__main__':
 	# parser variable
-	parser = argparse.ArgumentParser(description='Lims Management System - Lianne')
+	parser = argparse.ArgumentParser(description='Link Management System - Lianne')
 
 	# arguments
 	parser.add_argument('-i', '--runInput', required=True,
