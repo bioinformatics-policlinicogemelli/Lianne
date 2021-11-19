@@ -7,6 +7,7 @@ Step available:
 3. Fastq QC using FastQC
 4. Analysis using Illumina TruSigt Local App v2.2
 5. Making sequence details csv file to run jobs on CGW
+6. Added debug mode
 
 
 ######### 2021.10.21
