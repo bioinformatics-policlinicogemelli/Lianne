@@ -340,11 +340,67 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print(dr_sh)
 		
 
+	###############
+	# FastQC
 
+	# pbs parameters
+	select = 1
+	ncpus = 10
+	mem = '20g'
+	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'FastQC')
+	par = build_param_sh(parameters)
+
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/pipelines/varan/varan_env\n'
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
+	
+	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration')
+	print(tmp_fastq)
+	print(fastq_folder)
+	for root, dirs, files in os.walk(fastq_folder, topdown=False):
+		for name in files:
+			if '.fastq.gz' in name:
+				fastq = os.path.join(root, name)
+				out, file = os.path.split(fastq)
+				if 'Undetermined' in out:
+					continue
+				dr_cl = dr_cl+('fastqc '+fastq+' -o '+out+'\n\n')
+				
+	dr_sh = par+dr_cl
+
+	FastQC_file = os.path.join(tmp_path, 'FastQC.sh')
+	sh = open(FastQC_file, 'w')
+	sh.write(dr_sh)
+	sh.close()
+	if debug is False:
+		# build sh file
+		sh = open(FastQC_file, 'w')
+		sh.write(dr_sh)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid1_str
+		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file], stdout=subprocess.PIPE, universal_newlines=True)
+	else:
+		print('[DEBUG] FastQC.sh file written in foder: ')
+		print(FastQC_file)
+		print('[DEBUG] FastQC.sh file contains:')
+		print(dr_sh)
+		
+		# for name in dirs:
+		# 	if name in fastq_folder:
+		# 		continue
+		# 	else:
+		# 		print(os.path.join(root, name))
+
+	
 	os.sys.exit()
+
 	################
 	# BUILD CSV 
-
+	print(samplesheet)
+	# 
 	# seq details
 	make_seq_details.main(samplesheet)
 
