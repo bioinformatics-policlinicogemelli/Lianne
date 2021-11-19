@@ -62,8 +62,8 @@ def get_details(data_dict, run_ID):
 	
 
 def main(samplesheet_file):
-
-	#os.sys.exit()
+	print(samplesheet_file)
+	#
 	ss_reader = read_csv(samplesheet_file)
 	run_ID = get_runID(samplesheet_file)
 	data_dict = get_dict_data(ss_reader)
@@ -71,6 +71,7 @@ def main(samplesheet_file):
 	
 	file_name = run_ID+'_Details.csv'
 	file_out = open(file_name, 'w')
+	print(file_name)
 	file_out.write(HEADER+'\n')
 	for k,v in details_dict.items():
 		file_out.write(','.join(v))
