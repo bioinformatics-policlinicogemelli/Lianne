@@ -1,3 +1,14 @@
+######### 2021.11.19
+
+Refined the workflow and job queue
+Step available:
+1. Demultiplexing
+2. Fastq upload to CGW using CGWRunUploader
+3. Fastq QC using FastQC
+4. Analysis using Illumina TruSigt Local App v2.2
+5. Making sequence details csv file to run jobs on CGW
+
+
 ######### 2021.10.21
 
 Added Mosdepth to calculate coverage at 50x 100x 150x 500x
