@@ -283,7 +283,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 		# send job
 		jobid2 = subprocess.run(['qsub', dr_file], stdout=subprocess.PIPE, universal_newlines=True)
-		# print(dependencyID)
+		jobid2_str = jobid2.stdout
 	else:
 		print('[DEBUG] localApp file written in foder: ')
 		print(dr_file)
@@ -357,6 +357,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
 	
+	# Set folder where Fastq are located
+	# in the Illumina local app output folder
+	# and append all FastQC call
 	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration')
 	print(tmp_fastq)
 	print(fastq_folder)
@@ -371,6 +374,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 				
 	dr_sh = par+dr_cl
 
+	# build fastqc job
 	FastQC_file = os.path.join(tmp_path, 'FastQC.sh')
 	sh = open(FastQC_file, 'w')
 	sh.write(dr_sh)
@@ -380,7 +384,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(FastQC_file, 'w')
 		sh.write(dr_sh)
 		sh.close()
-		dependencyID = 'depend=afterany:'+jobid1_str
+		dependencyID = 'depend=afterany:'+jobid2_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] FastQC.sh file written in foder: ')
@@ -388,20 +392,15 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] FastQC.sh file contains:')
 		print(dr_sh)
 		
-		# for name in dirs:
-		# 	if name in fastq_folder:
-		# 		continue
-		# 	else:
-		# 		print(os.path.join(root, name))
-
+	
 	
 	os.sys.exit()
-
 	################
 	# BUILD CSV 
 	print(samplesheet)
 	# 
 	# seq details
+	
 	make_seq_details.main(samplesheet)
 
 	
