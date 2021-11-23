@@ -1,7 +1,12 @@
 # LIANNE
 
-***LIms mANagemenNt systEm*** 
+***LInk mANagemenNt systEm*** 
 
+This application manage the Bioinformatic workflow for **"Programma di profilazione genomica dei tumori FPG500**
+
+It's designed for the analysis of panel Illumina TruSight Oncology 500 sequenced using the Illumina Novaseq6000 sequencer
+
+Lianne manage 
 ## Usage
 
 
@@ -9,7 +14,7 @@
 usage: lianne.py [-h] -i RUNINPUT [-l1 SELECT] [-l2 NCPUS] [-l3 MEM]
                  [-e EMAIL] [-m SENDMODE] [-N NAME] [-q QUEUE]
 
-Lims Management System - Lianne
+Link Management System - Lianne
 
 optional arguments:
   -h, --help            show this help message and exit
