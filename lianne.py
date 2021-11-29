@@ -19,6 +19,7 @@ RESULTS = '/data/novaseq_results/'
 TMP = '/data/novaseq_results/tmp'
 LOCAL_APP = '/apps/trusight/2.2.0'
 D_RESOUCES = '/apps/trusight/2.2.0/resources'
+LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
 
 
 #####################################
@@ -338,6 +339,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print(cgw_file)
 		print('[DEBUG] cgw_uploader.sh file contains:')
 		print(dr_sh)
+		print('\n')
 		
 
 	###############
@@ -360,41 +362,37 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	# Set folder where Fastq are located
 	# in the Illumina local app output folder
 	# and append all FastQC call
-	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration')
-	print(tmp_fastq)
+	fastq_folder = os.path.join(out_localApp, 'Logs_Intermediates/FastqGeneration')
+	print(out_localApp)
 	print(fastq_folder)
-	for root, dirs, files in os.walk(fastq_folder, topdown=False):
-		for name in files:
-			if '.fastq.gz' in name:
-				fastq = os.path.join(root, name)
-				out, file = os.path.split(fastq)
-				if 'Undetermined' in out:
-					continue
-				dr_cl = dr_cl+('fastqc '+fastq+' -o '+out+'\n\n')
-				
-	dr_sh = par+dr_cl
+	
+	fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
+	sh_cmd = fastqc_path+' -f '+fastq_folder+' -t '+tmp_path
 
-	# build fastqc job
-	FastQC_file = os.path.join(tmp_path, 'FastQC.sh')
-	sh = open(FastQC_file, 'w')
+	dr_sh = par+'\n\n'+dr_cl+sh_cmd
+	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
+	
+	# build sh file
+	sh = open(FastQC_file_run, 'w')
 	sh.write(dr_sh)
 	sh.close()
+
+
+	
+
 	if debug is False:
-		# build sh file
-		sh = open(FastQC_file, 'w')
-		sh.write(dr_sh)
-		sh.close()
 		dependencyID = 'depend=afterany:'+jobid2_str
-		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] FastQC.sh file written in foder: ')
-		print(FastQC_file)
+		print(FastQC_file_run)
 		print('[DEBUG] FastQC.sh file contains:')
 		print(dr_sh)
-		
-	
-	
+		print(par)
 	os.sys.exit()
+
+	
+	
 	################
 	# BUILD CSV 
 	print(samplesheet)
