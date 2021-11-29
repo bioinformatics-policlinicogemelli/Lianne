@@ -94,6 +94,7 @@ def main(inBam, threshold, bedFile):
 	m_cl = mosdepth_cl(bedFile, threshold, prefix, inBam)
 	submitted = m_cl.split()
 	subprocess.run(submitted)
+	print(m_cl)
 
 
 
