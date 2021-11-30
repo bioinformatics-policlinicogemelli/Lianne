@@ -34,8 +34,74 @@ optional arguments:
   -N NAME, --name NAME  Insert the job name - Default=lianne
   -q QUEUE, --queue QUEUE
                         Insert the queue to send job - Default=workq
+  -d, --debug           Run the script in debug mode No jobs will be send No
+                        file will be written - Default=False
 ```
 
+## Steps
+
+Starting Lianne using the default parameters the scrit needs only the path folder of sequencer output.
+Lianne write the analysis on FPG cluster storage `/data/novaseq_results`
+
+### Demultiplexing
+
+The demultiplexing results are stored in `/data/novaseq_results/tmp` with the following name analysis_runName where runName is the name of sequencing output folder
+
+Lianne performs:
+
+1. A check if the samplesheet exists. If the samplesheet not exists, Lianne returns a warning and exit. If the samplesheet has another name, Lianne makes a copy in `/data/novaseq_results/tmp` using **SampleSheet.csv as file name**
+
+2. Sends the demultiplexing job using Illumina TruSight Oncology 500 Local App with the following command line:
+
+```
+#! /bin/bash 
+
+#PBS -o /data/novaseq_results/tmp/analysis_runName/stdout_demultiplex
+#PBS -e /data/novaseq_results/tmp/analysis_runName/stderr_demultiplex
+#PBS -l select=1:ncpus=24:mem=128g
+#PBS -M luciano.giaco@policlinicogemelli.it
+#PBS -m ae
+#PBS -N lianne_demultiplex
+#PBS -q workq
+
+module load singularity/3.7.4
+module load openmpi/4.1.1
+cd /apps/trusight/2.2.0
+
+./TruSight_Oncology_500_RUO.sh \
+--analysisFolder /data/novaseq_results/tmp/analysis_runName/runName \
+--resourcesFolder /apps/trusight/2.2.0/resources \
+--runFolder /data/novaseq/Diagnostic/NovaSeq/SequencerOutput/runName \
+--engine singularity \
+--sampleSheet /data/novaseq_results/tmp/analysis_runName/SampleSheet.csv \
+--isNovaSeq \
+--demultiplexOnly
+```
+
+
+### Local App
+
+The Illumina TruSigth Oncology Local App v2.2.0 is used as backup analysis in local on FPG HPC cluster.
+
+Lianne sends in queue the Local App using a sh script containing the following command line and PBS parameters:
+
+```
+#! /bin/bash 
+
+#PBS -o /data/novaseq_results/211122_A01423_0012_AH2YWCDRXY/stdout_LocalApp
+#PBS -e /data/novaseq_results/211122_A01423_0012_AH2YWCDRXY/stderr_LocalApp
+#PBS -l select=2:ncpus=24:mem=128g
+#PBS -M luciano.giaco@policlinicogemelli.it
+#PBS -m ae
+#PBS -N lianne_LocalApp
+#PBS -q workq
+
+module load singularity/3.7.4
+module load openmpi/4.1.1
+cd /apps/trusight/2.2.0
+
+./TruSight_Oncology_500_RUO.sh --analysisFolder /data/novaseq_results/211122_A01423_0012_AH2YWCDRXY --resourcesFolder /apps/trusight/2.2.0/resources --runFolder /data/novaseq/Diagnostic/NovaSeq/SequencerOutput/211122_A01423_0012_AH2YWCDRXY --engine singularity --sampleSheet /data/novaseq_results/tmp/analysis_211122_A01423_0012_AH2YWCDRXY/SampleSheet.csv --isNovaSeq
+```
 
 
 
