@@ -88,8 +88,8 @@ Lianne sends in queue the Local App using a sh script containing the following c
 ```
 #! /bin/bash 
 
-#PBS -o /data/novaseq_results/211122_A01423_0012_AH2YWCDRXY/stdout_LocalApp
-#PBS -e /data/novaseq_results/211122_A01423_0012_AH2YWCDRXY/stderr_LocalApp
+#PBS -o /data/novaseq_results/runName/stdout_LocalApp
+#PBS -e /data/novaseq_results/runName/stderr_LocalApp
 #PBS -l select=2:ncpus=24:mem=128g
 #PBS -M luciano.giaco@policlinicogemelli.it
 #PBS -m ae
@@ -100,7 +100,13 @@ module load singularity/3.7.4
 module load openmpi/4.1.1
 cd /apps/trusight/2.2.0
 
-./TruSight_Oncology_500_RUO.sh --analysisFolder /data/novaseq_results/211122_A01423_0012_AH2YWCDRXY --resourcesFolder /apps/trusight/2.2.0/resources --runFolder /data/novaseq/Diagnostic/NovaSeq/SequencerOutput/211122_A01423_0012_AH2YWCDRXY --engine singularity --sampleSheet /data/novaseq_results/tmp/analysis_211122_A01423_0012_AH2YWCDRXY/SampleSheet.csv --isNovaSeq
+./TruSight_Oncology_500_RUO.sh \
+--analysisFolder /data/novaseq_results/runName \
+--resourcesFolder /apps/trusight/2.2.0/resources \
+--runFolder /data/novaseq/Diagnostic/NovaSeq/SequencerOutput/runName \
+--engine singularity \
+--sampleSheet /data/novaseq_results/tmp/analysis_runName/SampleSheet.csv \
+--isNovaSeq
 ```
 
 
