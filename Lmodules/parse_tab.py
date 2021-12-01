@@ -15,12 +15,15 @@ def main(tab_file):
 	
 	print(tab_df.head())
 	canonical = tab_df[tab_df["CANONICAL"] == 'YES']
-	no_intron = canonical[canonical['Consequence'] != "intron_variant"]
+	no_intron = canonical[(canonical['Consequence'] != "intron_variant") & (canonical['Existing_variation'] != "-")]
 	print(canonical)
 	print(no_intron)
 
 	egfr = no_intron[no_intron["SYMBOL"] == 'EGFR']
 	egfr = egfr.to_csv("egfr.csv", index=False)
+
+	brca2 = no_intron[no_intron["SYMBOL"] == 'BRCA2']
+	brca2 = brca2.to_csv("brca2.csv", index=False)
 
 if __name__ == '__main__':
 	tab_file = os.sys.argv[1]
