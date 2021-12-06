@@ -30,8 +30,8 @@ def get_json(json_file):
 	# print(json_df.head())
 	# print(json_df)
 
-	for col in json_df.columns:
-		print(col)
+	# for col in json_df.columns:
+	# 	print(col)
 
 	# print(json_df["calculatedClassification"])
 	# print(json_df["consequence"])
@@ -50,7 +50,34 @@ def get_json(json_file):
 	# d = only_dict(json_df)
 	json_dict = json_df.to_dict(orient='records')
 	# k = json_dict.keys()
+	# first element
+	print('first element')
+	print('\n\n')
+	print(json_dict[0])
+	# dict hgvs
+	print('dict hgvs')
+	print('\n\n')
+	print(json_dict[0]['hgvsNomenclature'])
+	# dict cSyntaxes
+	print('dict cSyntaxes')
+	print('\n\n')
+	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'])
+	# first element cSyntaxes
+	print('first element cSyntaxes')
+	print('\n\n')
 	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0])
+	print('gene level')
+	print('\n\n')
+	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['gene'])
+	print('gene name')
+	print('\n\n')
+	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['gene']['symbol'])
+	print('pSyntax level')
+	print('\n\n')
+	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['pSyntax'])
+	print('transcSyntax level')
+	print('\n\n')
+	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['transcSyntax'])
 
 	# ld = list_of_dicts(json_df)
 	# print(ld)
