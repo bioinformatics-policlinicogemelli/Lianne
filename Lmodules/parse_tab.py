@@ -48,8 +48,31 @@ def get_json(json_file):
 	for k, v in json_df["calculatedClassification"].items():
 		# print(v)
 		if v["level"] == "IID":
+			print('################')
+			print('IID')
+			print('################')
 			for e in json_df['hgvsNomenclature'][c]['cSyntaxes']:
-				print(e)
+				try: 
+					print(e['consequence'])
+				except KeyError as ke:
+					print('Key Not Found in Employee Dictionary:', ke)
+				try: 
+					print(e['gene']['symbol'])
+				except KeyError as ke:
+					print('Key Not Found in Employee Dictionary:', ke)
+				try: 
+					print(e['pSyntax'])
+				except KeyError as ke:
+					print('Key Not Found in Employee Dictionary:', ke)
+				try: 
+					print(e['transcSyntax'])
+				except KeyError as ke:
+					print('Key Not Found in Employee Dictionary:', ke)
+				try: 
+					print(e['chromcSyntax'])
+				except KeyError as ke:
+					print('Key Not Found in Employee Dictionary:', ke)
+				print('\n')
 		c = c + 1
 	# print(TierI_subset)
 	hgvsNomenclature = pd.json_normalize(json_df["hgvsNomenclature"])
