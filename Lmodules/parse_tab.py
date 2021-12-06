@@ -39,10 +39,21 @@ def get_json(json_file):
 	# print(json_df["type"])
 	# print(json_df["id"])
 	classification = pd.json_normalize(json_df["calculatedClassification"])
-	classification.to_csv("UP01_tier.csv", index=False)
+	#vclassification.to_csv("UP01_tier.csv", index=False)
+	print(json_df["calculatedClassification"])
+	calculatedClassification = json_df["calculatedClassification"]
 
+	c = 0
+	TierI_subset = {k: v for k, v in json_df["calculatedClassification"].items() if v == "IID"}
+	for k, v in json_df["calculatedClassification"].items():
+		# print(v)
+		if v["level"] == "IID":
+			for e in json_df['hgvsNomenclature'][c]['cSyntaxes']:
+				print(e)
+		c = c + 1
+	# print(TierI_subset)
 	hgvsNomenclature = pd.json_normalize(json_df["hgvsNomenclature"])
-	hgvsNomenclature.to_csv("UP01_hgvs.csv", index=False)
+	# hgvsNomenclature.to_csv("UP01_hgvs.csv", index=False)
 
 	# print(hgvsNomenclature.index['gSyntax'])
 	# gSyntax = pd.json_normalize(hgvsNomenclature["gSyntax"])
@@ -51,33 +62,33 @@ def get_json(json_file):
 	json_dict = json_df.to_dict(orient='records')
 	# k = json_dict.keys()
 	# first element
-	print('first element')
-	print('\n\n')
-	print(json_dict[0])
-	# dict hgvs
-	print('dict hgvs')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature'])
-	# dict cSyntaxes
-	print('dict cSyntaxes')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'])
-	# first element cSyntaxes
-	print('first element cSyntaxes')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0])
-	print('gene level')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['gene'])
-	print('gene name')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['gene']['symbol'])
-	print('pSyntax level')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['pSyntax'])
-	print('transcSyntax level')
-	print('\n\n')
-	print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['transcSyntax'])
+	# print('first element')
+	# print('\n\n')
+	# print(json_dict[0])
+	# # dict hgvs
+	# print('dict hgvs')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature'])
+	# # dict cSyntaxes
+	# print('dict cSyntaxes')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature']['cSyntaxes'])
+	# # first element cSyntaxes
+	# print('first element cSyntaxes')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0])
+	# print('gene level')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['gene'])
+	# print('gene name')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['gene']['symbol'])
+	# print('pSyntax level')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['pSyntax'])
+	# print('transcSyntax level')
+	# print('\n\n')
+	# print(json_dict[0]['hgvsNomenclature']['cSyntaxes'][0]['transcSyntax'])
 
 	# ld = list_of_dicts(json_df)
 	# print(ld)
