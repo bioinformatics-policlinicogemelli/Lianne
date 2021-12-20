@@ -372,15 +372,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_sh = par+'\n\n'+dr_cl+sh_cmd
 	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
 	
-	# build sh file
-	sh = open(FastQC_file_run, 'w')
-	sh.write(dr_sh)
-	sh.close()
-
-
-	
 
 	if debug is False:
+		# build sh file
+		sh = open(FastQC_file_run, 'w')
+		sh.write(dr_sh)
+		sh.close()
 		dependencyID = 'depend=afterany:'+jobid2_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
