@@ -11,6 +11,7 @@ version = "0.1"
 import os
 import argparse
 import subprocess
+import make_seq_details
 from shutil import copyfile
 
 # GLOBAL PATH
@@ -18,6 +19,7 @@ RESULTS = '/data/novaseq_results/'
 TMP = '/data/novaseq_results/tmp'
 LOCAL_APP = '/apps/trusight/2.2.0'
 D_RESOUCES = '/apps/trusight/2.2.0/resources'
+LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
 
 
 #####################################
@@ -282,7 +284,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 		# send job
 		jobid2 = subprocess.run(['qsub', dr_file], stdout=subprocess.PIPE, universal_newlines=True)
-		# print(dependencyID)
+		jobid2_str = jobid2.stdout
 	else:
 		print('[DEBUG] localApp file written in foder: ')
 		print(dr_file)
@@ -321,14 +323,14 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'--sequencer=Illumina '
 	dr_cl = dr_cl+'--sequencerFileType=fastq'
 
-
+	dr_sh = par+dr_cl
 	# path management
 	cgw_file = os.path.join(tmp_path, 'cgw_uploader.sh')
 
 	if debug is False:
 		# build sh file
 		sh = open(cgw_file, 'w')
-		sh.write(dr_cl)
+		sh.write(dr_sh)
 		sh.close()
 		dependencyID = 'depend=afterany:'+jobid1_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cgw_file], stdout=subprocess.PIPE, universal_newlines=True)
@@ -336,12 +338,67 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] cgw_uploader.sh file written in foder: ')
 		print(cgw_file)
 		print('[DEBUG] cgw_uploader.sh file contains:')
-		print(dr_cl)
-		print('[DEBUG] output folder of local app:')
+		print(dr_sh)
+		print('\n')
+		
 
+	###############
+	# FastQC
 
+	# pbs parameters
+	select = 1
+	ncpus = 10
+	mem = '20g'
+	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'FastQC')
+	par = build_param_sh(parameters)
 
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/pipelines/varan/varan_env\n'
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
+	
+	# Set folder where Fastq are located
+	# in the Illumina local app output folder
+	# and append all FastQC call
+	fastq_folder = os.path.join(out_localApp, 'Logs_Intermediates/FastqGeneration')
+	print(out_localApp)
+	print(fastq_folder)
+	
+	fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
+	sh_cmd = fastqc_path+' -f '+fastq_folder+' -t '+tmp_path
+
+	dr_sh = par+'\n\n'+dr_cl+sh_cmd
+	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
+	
+
+	if debug is False:
+		# build sh file
+		sh = open(FastQC_file_run, 'w')
+		sh.write(dr_sh)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid2_str
+		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+	else:
+		print('[DEBUG] FastQC.sh file written in foder: ')
+		print(FastQC_file_run)
+		print('[DEBUG] FastQC.sh file contains:')
+		print(dr_sh)
+		print(par)
 	os.sys.exit()
+
+	
+	
+	################
+	# BUILD CSV 
+	print(samplesheet)
+	# 
+	# seq details
+	
+	make_seq_details.main(samplesheet)
+
+	
 	# build 
 	# tmp_fastq
 
@@ -353,7 +410,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 if __name__ == '__main__':
 	# parser variable
-	parser = argparse.ArgumentParser(description='Lims Management System - Lianne')
+	parser = argparse.ArgumentParser(description='Link Management System - Lianne')
 
 	# arguments
 	parser.add_argument('-i', '--runInput', required=True,

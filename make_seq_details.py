@@ -38,16 +38,18 @@ def get_dict_data(ss_reader):
 	return data_dict
 
 def get_details(data_dict, run_ID):
+	# accession_number is patient
+	# 
 	details_dict = dict()
 	for k,v in data_dict.items():
 		row_to_write = []
 		if k == 'Sample_ID':
 			continue
-		accession_number = k
+		sample_ID = k
 		idx1 = v[5]
 		idx2 = v[6]
 		sample_Type = v[7]
-		sample_ID = v[8]
+		accession_number = v[8]
 		row_to_write.append(accession_number)
 		row_to_write.append('Primary Specimen')
 		row_to_write.append(run_ID)
@@ -56,21 +58,21 @@ def get_details(data_dict, run_ID):
 		row_to_write.append('PAIRED END')
 		row_to_write.append(sample_Type)
 		row_to_write.append(sample_ID)
-		details_dict[accession_number] = row_to_write
+		details_dict[sample_ID] = row_to_write
 		#continue
 	return details_dict
 	
 
 def main(samplesheet_file):
-
-	#os.sys.exit()
+	print(samplesheet_file)
+	#
 	ss_reader = read_csv(samplesheet_file)
 	run_ID = get_runID(samplesheet_file)
 	data_dict = get_dict_data(ss_reader)
 	details_dict = get_details(data_dict, run_ID)
-	
 	file_name = run_ID+'_Details.csv'
 	file_out = open(file_name, 'w')
+	print(file_name)
 	file_out.write(HEADER+'\n')
 	for k,v in details_dict.items():
 		file_out.write(','.join(v))

@@ -94,6 +94,7 @@ def main(inBam, threshold, bedFile):
 	m_cl = mosdepth_cl(bedFile, threshold, prefix, inBam)
 	submitted = m_cl.split()
 	subprocess.run(submitted)
+	print(m_cl)
 
 
 
@@ -108,7 +109,7 @@ check for coverage at different reads depths. It returns a xlsx and txt file')
 	parser.add_argument('-i', '--inBam', required=True,
 						help='Absolute path file of bam')
 	parser.add_argument('-t', '--threshold', required=False,
-						default='50,100,150,500',
+						default='50,100,250,500',
 						help="for each interval in bed file, write number of bases covered by at\
 least threshold bases. Specify multiple integer values separated\
 by ','")
