@@ -1,4 +1,24 @@
-#  VarHound - Coverage diagnostics - core functions
+#  VarHound - TSO500 - Diagnostics core functions
+
+#  Copyright (C) 2021 Fernando Palluzzi
+#  e-mail: <fernando.palluzzi@gmail.com>
+#  Bioinformatics facility 
+#  Gemelli Science and Technological Park (GSTeP)
+#  Fondazione Policlinico Universitario Agostino Gemelli IRCCS,
+#  Largo Agostino Gemelli 8, 00168 Roma, Italy
+
+#  VarHound is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+
+#  VarHound is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 cov.preprocess <- function(file, include = NULL, cleanup = NULL, runtype = NULL) {
 	x <- read.delim(file, stringsAsFactors = FALSE)
@@ -115,8 +135,8 @@ cov.data <- function(directory, include = NULL, cleanup = NULL,
                      runtype = NULL, format = "bed") {
 	check <- TRUE
 	for (file in list.files(directory, recursive = TRUE)) {
-		ext <- strsplit(file, "\\.")[[1]]
-		if (ext[length(ext)] == format) {
+		if (endsWith(file, format)) {
+			sample.name <- strsplit(file, "\\.")[[1]][1]
 			file.path <- paste0(directory, "/", file)
 			if (check) {
 				R <- cov.long(file.path, include, cleanup,
@@ -126,7 +146,8 @@ cov.data <- function(directory, include = NULL, cleanup = NULL,
 				R <- data.frame(R, p = cov.long(file.path, include,
 				                                cleanup, runtype)[, 9])
 			}
-			names(R)[ncol(R)] <- ext[1]
+			sample.name <- basename(sample.name)
+			names(R)[ncol(R)] <- sample.name
 		}
 	}
 	return(R)
