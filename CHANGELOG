@@ -1,3 +1,7 @@
+######### 2022.01.12
+
+1. Added VarHound for coverage analysis
+
 ######### 2021.11.29
 
 1. Changed queue for FastQC
