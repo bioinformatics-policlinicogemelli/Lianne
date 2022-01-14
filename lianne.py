@@ -76,7 +76,8 @@ class pbs_parameters:
 # ===================================
 
 def get_folderOut(runInput):
-	head, tail = os.path.split(runInput)
+	pathInput = os.path.normpath(runInput)
+	head, tail = os.path.split(pathInput)
 	return(tail)
 
 def build_param_sh(parameters):
@@ -168,7 +169,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	
 	
 	tail = get_folderOut(runInput)
-
+	print('TAIL')
+	print(tail)
 	################
 	# DEMULTIPLEXING
 
@@ -180,7 +182,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 	if debug is False:
 		try:
-			os.mkdir(tmp_path, mode = 0o755)
+			os.mkdir(tmp_path)
 		except FileExistsError:
 			print('[WARNING] directory '+tmp_path+' already exists')
 			pass
@@ -362,12 +364,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	# Set folder where Fastq are located
 	# in the Illumina local app output folder
 	# and append all FastQC call
-	fastq_folder = os.path.join(out_localApp, 'Logs_Intermediates/FastqGeneration')
-	print(out_localApp)
+	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration/*/*.fastq.gz')
+	print(tmp_fastq)
 	print(fastq_folder)
 	
 	fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
-	sh_cmd = fastqc_path+' -f '+fastq_folder+' -t '+tmp_path
+	sh_cmd = fastqc_path+' -f '+fastq_folder#+' -t '+tmp_path
 
 	dr_sh = par+'\n\n'+dr_cl+sh_cmd
 	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
