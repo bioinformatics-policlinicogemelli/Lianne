@@ -20,6 +20,7 @@ TMP = '/data/novaseq_results/tmp'
 LOCAL_APP = '/apps/trusight/2.2.0'
 D_RESOUCES = '/apps/trusight/2.2.0/resources'
 LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
+COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
 
 
 #####################################
@@ -380,7 +381,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(FastQC_file_run, 'w')
 		sh.write(dr_sh)
 		sh.close()
-		dependencyID = 'depend=afterany:'+jobid2_str
+		dependencyID = 'depend=afterany:'+jobid1_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] FastQC.sh file written in foder: ')
@@ -388,9 +389,47 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] FastQC.sh file contains:')
 		print(dr_sh)
 		print(par)
-	os.sys.exit()
+
 
 	
+
+	###############
+	# Coverage
+
+	# pbs parameters
+	select = 1
+	ncpus = 5
+	mem = '10g'
+
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'coverage')
+	par = build_param_sh(pathStd)
+
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'cd '+out_localApp
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
+
+
+	# retrieve bam file path for coverage analysis
+	snv_bamDir = os.path.join(out_localApp, 'Logs_Intermediates/StitchedRealigned')
+	bam_list = []
+	for root, dirs, file in os.walk(snv_bamDir):
+		for f in file:
+			if f.endswith('.bam'):
+				bam_file = os.path.join(root, f)
+				bam_list.append(bam_file)
+	
+	# write coverage sh
+	dr_sh = par+'\n\n'+dr_cl
+	coverage_file_run = os.path.join(tmp_path, 'coverage_run.sh')
+	print(dr_sh)
+	for b in bam_list:
+		print('python3 '+COV_MODULE+' -i '+b)
+
+	os.sys.exit()
 	
 	################
 	# BUILD CSV 
