@@ -381,8 +381,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(FastQC_file_run, 'w')
 		sh.write(dr_sh)
 		sh.close()
-		dependencyID = 'depend=afterany:'+jobid1_str
-		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		dependencyID = 'depend=afterany:'+jobid2_str
+		jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] FastQC.sh file written in foder: ')
 		print(FastQC_file_run)
@@ -425,9 +425,26 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	# write coverage sh
 	dr_sh = par+'\n\n'+dr_cl
 	coverage_file_run = os.path.join(tmp_path, 'coverage_run.sh')
-	print(dr_sh)
-	for b in bam_list:
-		print('python3 '+COV_MODULE+' -i '+b)
+
+	if debug is False:
+		# build sh file
+		sh = open(coverage_file_run, 'w')
+		sh.write(dr_sh)
+		for b in bam_list:
+			sh.write('python3 '+COV_MODULE+' -i '+b)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid1_str
+		jobid2 = subprocess.run(['qsub', '-W', dependencyID, coverage_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+	else:
+		print('[DEBUG] coverage_run.sh file written in foder: ')
+		print(coverage_file_run)
+		print('[DEBUG] coverage_run.sh file contains:')
+		print(dr_sh)
+		for b in bam_list:
+			print('python3 '+COV_MODULE+' -i '+b)
+
+
+	
 
 	os.sys.exit()
 	
