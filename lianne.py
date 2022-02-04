@@ -358,7 +358,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/pipelines/varan/varan_env\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
 	
