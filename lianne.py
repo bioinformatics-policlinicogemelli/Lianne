@@ -436,14 +436,16 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	if debug is False:
 		sh = open(cvLaunch, 'w')
 		sh.write(cv_sh)
+		sh.close()
 		dependencyID = 'depend=afterany:'+jobid2_str
-		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid4 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid4_str = jobid4.stdout
 	else:
 		print('[DEBUG] coverage_run.sh file written in foder: ')
 		print(cvLaunch)
 		print('[DEBUG] coverage_run.sh file contains:')
 		print(cv_sh)
-		
+	
 
 
 	###############
@@ -456,8 +458,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
 	par = build_param_sh(pathStd)
-	print(par)
 
+	coverage_out = os.pathjoin(out_localApp, 'coverage')
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
@@ -465,6 +467,26 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'cd '+out_localApp
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'cd '+LIANNE_FOLDER+'\n'
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out
+
+
+
+	varhound_file_run = os.path.join(out_localApp, 'varhound_run.sh')
+
+	if debug is False:
+		sh = open(varhound_file_run, 'w')
+		sh.write(dr_cl)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid4_str
+		jobid5 = subprocess.run(['qsub', '-W', dependencyID, varhound_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid5_str = jobid5.stdout
+	else:
+		print('[DEBUG] varhound_run.sh file written in foder: ')
+		print(varhound_file_run)
+		print('[DEBUG] varhound_run.sh file contains:')
+		print(dr_cl)
+
 
 	
 	os.sys.exit()
