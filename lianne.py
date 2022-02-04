@@ -412,40 +412,61 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
 
-
-	# retrieve bam file path for coverage analysis
-	snv_bamDir = os.path.join(out_localApp, 'Logs_Intermediates/StitchedRealigned')
-	bam_list = []
-	for root, dirs, file in os.walk(snv_bamDir):
-		for f in file:
-			if f.endswith('.bam'):
-				bam_file = os.path.join(root, f)
-				bam_list.append(bam_file)
-	
-	# write coverage sh
 	dr_sh = par+'\n\n'+dr_cl
-	coverage_file_run = os.path.join(tmp_path, 'coverage_run.sh')
+
+	
+	
+	# scrivere sh che lancia cvLaunch.py
+
+	# write coverage sh
+	# pbs parameters
+	select = 1
+	ncpus = 1
+	mem = '1g'
+
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'coverage')
+	par = build_param_sh(pathStd)
+	cv_sh = par+'\n\n'
+	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -p '+dr_sh+' -o '+out_localApp
+
+	cvLaunch = os.path.join(out_localApp, 'cvLaunch.sh')
+
 
 	if debug is False:
-		# build sh file
-		sh = open(coverage_file_run, 'w')
-		sh.write(dr_sh)
-		for b in bam_list:
-			sh.write('python3 '+COV_MODULE+' -i '+b)
-		sh.close()
-		dependencyID = 'depend=afterany:'+jobid1_str
-		jobid2 = subprocess.run(['qsub', '-W', dependencyID, coverage_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		sh = open(cvLaunch, 'w')
+		sh.write(cv_sh)
+		dependencyID = 'depend=afterany:'+jobid2_str
+		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] coverage_run.sh file written in foder: ')
-		print(coverage_file_run)
+		print(cvLaunch)
 		print('[DEBUG] coverage_run.sh file contains:')
-		print(dr_sh)
-		for b in bam_list:
-			print('python3 '+COV_MODULE+' -i '+b)
+		print(cv_sh)
+		
 
+
+	###############
+	# VarHound
+
+	# pbs parameters
+	select = 1
+	ncpus = 2
+	mem = '5g'
+
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
+	par = build_param_sh(pathStd)
+	print(par)
+
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'cd '+out_localApp
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
 
 	
-
 	os.sys.exit()
 	
 	################
