@@ -344,6 +344,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print(dr_sh)
 		print('\n')
 		
+	os.sys.exit()
 
 	###############
 	# FastQC
@@ -424,13 +425,13 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	ncpus = 1
 	mem = '1g'
 
-	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'coverage')
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'cvLaunch')
 	par = build_param_sh(pathStd)
 	cv_sh = par+'\n\n'
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
 	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -p '+dr_sh+' -o '+out_localApp
 
-	cvLaunch = os.path.join(out_localApp, 'cvLaunch.sh')
+	cvLaunch = os.path.join(out_localApp, 'cvLaunch.sh\n')
 
 
 	if debug is False:
@@ -441,9 +442,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		jobid4 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid4_str = jobid4.stdout
 	else:
-		print('[DEBUG] coverage_run.sh file written in foder: ')
+		print('[DEBUG] cvLaunch.sh file written in foder: ')
 		print(cvLaunch)
-		print('[DEBUG] coverage_run.sh file contains:')
+		print('[DEBUG] cvLaunch.sh file contains:')
 		print(cv_sh)
 	
 
@@ -459,7 +460,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
 	par = build_param_sh(pathStd)
 
-	coverage_out = os.pathjoin(out_localApp, 'coverage')
+	coverage_out = os.path.join(out_localApp, 'coverage')
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
@@ -489,7 +490,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 
 	
-	os.sys.exit()
+	
 	
 	################
 	# BUILD CSV 
