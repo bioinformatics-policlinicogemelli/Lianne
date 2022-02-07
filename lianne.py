@@ -429,7 +429,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	par = build_param_sh(pathStd)
 	cv_sh = par+'\n\n'
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
-	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -p '+dr_sh+' -o '+out_localApp
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp
 
 	cvLaunch = os.path.join(out_localApp, 'cvLaunch.sh\n')
 
