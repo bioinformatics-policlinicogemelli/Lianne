@@ -13,12 +13,35 @@ version = "0.1"
 
 import os
 import argparse
+import subprocess
 
 LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
 COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
 
 def main(dr_sh, out_localApp, debug):
 
+	par = '#! /bin/bash\n\
+\n\
+#PBS -o /data/novaseq_results/220205_A01423_0019_BHWHK5DRXY/stdout_coverage\n\
+#PBS -e /data/novaseq_results/220205_A01423_0019_BHWHK5DRXY/stderr_coverage\n\
+#PBS -l select=1:ncpus=2:mem=5g\n\
+#PBS -M luciano.giaco@policlinicogemelli.it\n\
+#PBS -m ae\n\
+#PBS -N lianne_coverage\n\
+#PBS -q workq\n\n'
+
+
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'cd '+out_localApp
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
+
+	dr_sh = par+'\n\n'+dr_cl
+
+	
 	# write coverage sh
 	
 	coverage_file_run = os.path.join(out_localApp, 'coverage_run.sh')
@@ -37,7 +60,7 @@ def main(dr_sh, out_localApp, debug):
 		sh = open(coverage_file_run, 'w')
 		sh.write(dr_sh)
 		for b in bam_list:
-			sh.write('python3 '+COV_MODULE+' -i '+b)
+			sh.write('python3 '+COV_MODULE+' -i '+b+'\n')
 		sh.close()
 		jobid2 = subprocess.run(['qsub', coverage_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
@@ -53,7 +76,7 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Launch script for coverage - Lianne module')
 
 	# arguments
-	parser.add_argument('-p', '--shParameters', required=True,
+	parser.add_argument('-p', '--shParameters', required=False,
 						help='sh parameters built by Lianne')
 	parser.add_argument('-o', '--outLocalApp', required=True,
 						help='Output folder of Local App')
