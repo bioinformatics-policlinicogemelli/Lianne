@@ -344,7 +344,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print(dr_sh)
 		print('\n')
 		
-	os.sys.exit()
+	
 
 	###############
 	# FastQC
@@ -415,9 +415,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 	dr_sh = par+'\n\n'+dr_cl
 
-	
-	
-	# scrivere sh che lancia cvLaunch.py
+
 
 	# write coverage sh
 	# pbs parameters
@@ -446,8 +444,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print(cvLaunch)
 		print('[DEBUG] cvLaunch.sh file contains:')
 		print(cv_sh)
-	
-
+		print("\n\n")
+		print('[DEBUG] coverage sh file:')
+		jobid5 = subprocess.run(['python3', '/data/hpc-data/shared/pipelines/lianne/Lmodules/cvLaunch.py', '-o', out_localApp, '-d'], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid5_str = jobid5.stdout
+		print(jobid5_str)
+	os.sys.exit()
 
 	###############
 	# VarHound
