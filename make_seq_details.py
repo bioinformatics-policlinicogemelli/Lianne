@@ -68,6 +68,7 @@ def main(samplesheet_file):
 	#
 	ss_reader = read_csv(samplesheet_file)
 	run_ID = get_runID(samplesheet_file)
+	print(run_ID)
 	data_dict = get_dict_data(ss_reader)
 	details_dict = get_details(data_dict, run_ID)
 	file_name = run_ID+'_Details.csv'
