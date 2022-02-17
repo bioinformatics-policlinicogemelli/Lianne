@@ -429,7 +429,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
 	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp
 
-	cvLaunch = os.path.join(out_localApp, 'cvLaunch.sh\n')
+	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh\n')
 
 
 	if debug is False:
