@@ -462,7 +462,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
 	par = build_param_sh(pathStd)
 
-	coverage_out = os.path.join(out_localApp, 'coverage')
+	coverage_out = os.path.join(tmp_path, 'coverage')
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
