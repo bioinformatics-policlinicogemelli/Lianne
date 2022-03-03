@@ -1,3 +1,11 @@
+######### 2022.01.14
+
+1. Fixed bug in normpath for runInput path
+
+######### 2022.01.12
+
+1. Added VarHound for coverage analysis
+
 ######### 2021.11.29
 
 1. Changed queue for FastQC

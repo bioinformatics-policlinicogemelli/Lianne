@@ -20,6 +20,7 @@ TMP = '/data/novaseq_results/tmp'
 LOCAL_APP = '/apps/trusight/2.2.0'
 D_RESOUCES = '/apps/trusight/2.2.0/resources'
 LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
+COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
 
 
 #####################################
@@ -76,7 +77,8 @@ class pbs_parameters:
 # ===================================
 
 def get_folderOut(runInput):
-	head, tail = os.path.split(runInput)
+	pathInput = os.path.normpath(runInput)
+	head, tail = os.path.split(pathInput)
 	return(tail)
 
 def build_param_sh(parameters):
@@ -168,7 +170,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	
 	
 	tail = get_folderOut(runInput)
-
+	print('TAIL')
+	print(tail)
 	################
 	# DEMULTIPLEXING
 
@@ -180,7 +183,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 	if debug is False:
 		try:
-			os.mkdir(tmp_path, mode = 0o755)
+			os.mkdir(tmp_path)
 		except FileExistsError:
 			print('[WARNING] directory '+tmp_path+' already exists')
 			pass
@@ -341,6 +344,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print(dr_sh)
 		print('\n')
 		
+	
 
 	###############
 	# FastQC
@@ -355,19 +359,19 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/pipelines/varan/varan_env\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
 	
 	# Set folder where Fastq are located
 	# in the Illumina local app output folder
 	# and append all FastQC call
-	fastq_folder = os.path.join(out_localApp, 'Logs_Intermediates/FastqGeneration')
-	print(out_localApp)
+	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration/*/*.fastq.gz')
+	print(tmp_fastq)
 	print(fastq_folder)
 	
 	fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
-	sh_cmd = fastqc_path+' -f '+fastq_folder+' -t '+tmp_path
+	sh_cmd = fastqc_path+' -f '+fastq_folder#+' -t '+tmp_path
 
 	dr_sh = par+'\n\n'+dr_cl+sh_cmd
 	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
@@ -379,15 +383,115 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh.write(dr_sh)
 		sh.close()
 		dependencyID = 'depend=afterany:'+jobid2_str
-		jobid2 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] FastQC.sh file written in foder: ')
 		print(FastQC_file_run)
 		print('[DEBUG] FastQC.sh file contains:')
 		print(dr_sh)
 		print(par)
+
+
+	
+
+	###############
+	# Coverage
+
+	# pbs parameters
+	select = 1
+	ncpus = 5
+	mem = '10g'
+
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'coverage')
+	par = build_param_sh(pathStd)
+
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'cd '+out_localApp
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
+
+	dr_sh = par+'\n\n'+dr_cl
+
+
+
+	# write coverage sh
+	# pbs parameters
+	select = 1
+	ncpus = 1
+	mem = '1g'
+
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'cvLaunch')
+	par = build_param_sh(pathStd)
+	cv_sh = par+'\n\n'
+	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp
+
+	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh\n')
+
+
+	if debug is False:
+		sh = open(cvLaunch, 'w')
+		sh.write(cv_sh)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid2_str
+		jobid4 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid4_str = jobid4.stdout
+	else:
+		print('[DEBUG] cvLaunch.sh file written in foder: ')
+		print(cvLaunch)
+		print('[DEBUG] cvLaunch.sh file contains:')
+		print(cv_sh)
+		print("\n\n")
+		print('[DEBUG] coverage sh file:')
+		jobid5 = subprocess.run(['python3', '/data/hpc-data/shared/pipelines/lianne/Lmodules/cvLaunch.py', '-o', out_localApp, '-d'], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid5_str = jobid5.stdout
+		print(jobid5_str)
 	os.sys.exit()
 
+	###############
+	# VarHound
+
+	# pbs parameters
+	select = 1
+	ncpus = 2
+	mem = '5g'
+
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
+	par = build_param_sh(pathStd)
+
+	coverage_out = os.path.join(out_localApp, 'coverage')
+	dr_cl = 'module load anaconda/3\n'
+	dr_cl = dr_cl+'init bash\n'
+	dr_cl = dr_cl+'source ~/.bashrc\n'
+	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'cd '+out_localApp
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'\n'
+	dr_cl = dr_cl+'cd '+LIANNE_FOLDER+'\n'
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out
+
+
+
+	varhound_file_run = os.path.join(out_localApp, 'varhound_run.sh')
+
+	if debug is False:
+		sh = open(varhound_file_run, 'w')
+		sh.write(dr_cl)
+		sh.close()
+		dependencyID = 'depend=afterany:'+jobid4_str
+		jobid5 = subprocess.run(['qsub', '-W', dependencyID, varhound_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		jobid5_str = jobid5.stdout
+	else:
+		print('[DEBUG] varhound_run.sh file written in foder: ')
+		print(varhound_file_run)
+		print('[DEBUG] varhound_run.sh file contains:')
+		print(dr_cl)
+
+
+	
 	
 	
 	################
