@@ -429,7 +429,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
 	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp
 
-	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh\n')
+	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh')
 
 
 	if debug is False:
@@ -449,7 +449,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		jobid5 = subprocess.run(['python3', '/data/hpc-data/shared/pipelines/lianne/Lmodules/cvLaunch.py', '-o', out_localApp, '-d'], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid5_str = jobid5.stdout
 		print(jobid5_str)
-	os.sys.exit()
+	
 
 	###############
 	# VarHound
@@ -490,6 +490,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] varhound_run.sh file contains:')
 		print(dr_cl)
 
+	os.sys.exit()
 
 	
 	
