@@ -243,8 +243,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		# Capture the job ID for qsub hold
 		jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid1_str = jobid1.stdout
-		print('[INFO] Queue:')
-		subprocess.run(['qstat'])
+		
 	else:
 		print('[DEBUG] sh file written in foder: ')
 		print(d_file)
@@ -284,7 +283,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(dr_file, 'w')
 		sh.write(dr_sh)
 		sh.close()
-
+		print('[INFO] Sending '+dr_file)
 		# send job
 		jobid2 = subprocess.run(['qsub', dr_file], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid2_str = jobid2.stdout
@@ -335,6 +334,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(cgw_file, 'w')
 		sh.write(dr_sh)
 		sh.close()
+		print('[INFO] Sending '+cgw_file)
 		dependencyID = 'depend=afterany:'+jobid1_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cgw_file], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
@@ -383,7 +383,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh.write(dr_sh)
 		sh.close()
 		dependencyID = 'depend=afterany:'+jobid2_str
-		jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		# jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
 		print('[DEBUG] FastQC.sh file written in foder: ')
 		print(FastQC_file_run)
@@ -436,6 +436,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(cvLaunch, 'w')
 		sh.write(cv_sh)
 		sh.close()
+		print('[INFO] Sending '+cvLaunch)
 		dependencyID = 'depend=afterany:'+jobid2_str
 		jobid4 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid4_str = jobid4.stdout
@@ -481,6 +482,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(varhound_file_run, 'w')
 		sh.write(dr_cl)
 		sh.close()
+		print('[INFO] Sending '+varhound_file_run)
 		dependencyID = 'depend=afterany:'+jobid4_str
 		jobid5 = subprocess.run(['qsub', '-W', dependencyID, varhound_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid5_str = jobid5.stdout
@@ -490,6 +492,8 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] varhound_run.sh file contains:')
 		print(dr_cl)
 
+	print('[INFO] Queue:')
+	subprocess.run(['qstat'])
 	os.sys.exit()
 
 	
