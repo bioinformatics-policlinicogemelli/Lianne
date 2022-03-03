@@ -172,6 +172,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	tail = get_folderOut(runInput)
 	print('TAIL')
 	print(tail)
+	out_localApp = os.path.join(RESULTS, tail)
+	if os.path.exists(out_localApp):
+		print('[INFO] path results already exists')
+		print('[INFO] check the path: '+out_localApp)
+		print('[INFO] exit')
+		os.sys.exit()
 	################
 	# DEMULTIPLEXING
 
@@ -258,7 +264,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 	# path management
 	
-	out_localApp = os.path.join(RESULTS, tail)
+	
 	select = 2
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'LocalApp')
 	par = build_param_sh(pathStd)
