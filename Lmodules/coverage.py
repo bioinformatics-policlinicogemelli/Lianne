@@ -15,7 +15,7 @@
 #    
 # Version
 # --------------
-version = "0.1.0"
+version = "1.1"
 ###############################################
 
 import openpyxl as px
@@ -67,19 +67,33 @@ def main(inBam, threshold, bedFile):
 
 	################ MANAGE DIRECTORY
 
+def manage_out_dir(ot):
+	# ot: snv or cnv or rna
+
 	# coverage dir
+	if ot == 'snv':
+		prx = 'snv_'
+	elif ot == 'rna':
+		prx = 'rna_'
+	elif ot == 'cnv':
+		prx = 'cnv_'
+	else:
+		print('[ERROR] Prefix coverage folder out not defined')
+		print('[INFO] Exit')
+		os.sys.exit()
+
 	cwd = os.getcwd()
-	out_dir = os.path.join(cwd, 'coverage')
+	snv_out_dir = os.path.join(cwd, 'snv_coverage')
 
 	try:
-		os.mkdir(out_dir, mode = 0o755)
-		os.chdir(out_dir)
+		os.mkdir(snv_out_dir, mode = 0o755)
+		os.chdir(snv_out_dir)
 	except FileExistsError:
 		# directory already exists
-		os.chdir(out_dir)
+		os.chdir(snv_out_dir)
 
 	# sample dir
-	sample_dir = os.path.join(out_dir, prefix)
+	sample_dir = os.path.join(snv_out_dir, prefix)
 
 	try:
 		os.mkdir(sample_dir, mode = 0o755)
