@@ -83,23 +83,31 @@ def manage_out_dir(ot):
 		os.sys.exit()
 
 	cwd = os.getcwd()
-	snv_out_dir = os.path.join(cwd, 'snv_coverage')
+	out_dir = os.path.join(cwd, prx+'coverage')
 
 	try:
-		os.mkdir(snv_out_dir, mode = 0o755)
-		os.chdir(snv_out_dir)
+		print('[INFO] Making '+out_dir)
+		os.mkdir(out_dir, mode = 0o755)
+		print('[INFO] Directory '+out_dir+' created')
+		print('[INFO] Moving '+out_dir)
+		os.chdir(out_dir)
 	except FileExistsError:
-		# directory already exists
-		os.chdir(snv_out_dir)
+		print('[INFO] Directory '+out_dir+' already exists')
+		print('[INFO] Moving '+out_dir)
+		os.chdir(out_dir)
 
 	# sample dir
-	sample_dir = os.path.join(snv_out_dir, prefix)
+	sample_dir = os.path.join(out_dir, prefix)
 
 	try:
+		print('[INFO] Making '+sample_dir)
 		os.mkdir(sample_dir, mode = 0o755)
+		print('[INFO] Directory '+sample_dir+' created')
+		print('[INFO] Moving '+sample_dir)
 		os.chdir(sample_dir)
 	except FileExistsError:
-		# directory already exists
+		print('[INFO] Directory '+sample_dir+' already exists')
+		print('[INFO] Moving '+sample_dir)
 		os.chdir(sample_dir)
 
 
