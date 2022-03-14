@@ -18,6 +18,8 @@ import subprocess
 LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
 COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
 
+
+
 def main(email, out_localApp, debug):
 
 	par = '#! /bin/bash\n\
