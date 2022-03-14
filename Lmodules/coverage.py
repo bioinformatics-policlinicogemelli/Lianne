@@ -98,7 +98,7 @@ def manage_out_dir(ot):
 		print('[INFO] Moving '+sample_dir)
 		os.chdir(sample_dir)
 
-def main(inBam, threshold, bedFile):
+def main(inBam, threshold, bedFile, ot):
 
 	################### CONTROL FILES
 	
@@ -151,9 +151,10 @@ by ','")
 	inBam = args.inBam
 	threshold = args.threshold
 	bedFile = args.bedFile
+	ot = args.output_prefix
 
 
 ###########################################################################
 
-	main(inBam, threshold, bedFile)
+	main(inBam, threshold, bedFile, ot)
 
