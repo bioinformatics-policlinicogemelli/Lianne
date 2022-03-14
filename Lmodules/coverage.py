@@ -54,20 +54,8 @@ def mosdepth_cl(bedFile, threshold, prefix, inBam):
 
 	return m_cl
 
-def main(inBam, threshold, bedFile):
-
-	################### CONTROL FILES
-	
-	### Bam file
-	prefix = checkFile(inBam)
-	### Bed file
-	if bedFile != BED:
-		checkFile(bedFile)
-
-
-	################ MANAGE DIRECTORY
-
 def manage_out_dir(ot):
+	
 	# ot: snv or cnv or rna
 
 	# coverage dir
@@ -110,6 +98,20 @@ def manage_out_dir(ot):
 		print('[INFO] Moving '+sample_dir)
 		os.chdir(sample_dir)
 
+def main(inBam, threshold, bedFile):
+
+	################### CONTROL FILES
+	
+	### Bam file
+	prefix = checkFile(inBam)
+	### Bed file
+	if bedFile != BED:
+		checkFile(bedFile)
+
+	################ MANAGE DIRECTORY
+
+	manage_out_dir(ot)
+
 
 	############## BUILD COMMAND LINE
 
@@ -136,6 +138,10 @@ check for coverage at different reads depths. It returns a xlsx and txt file')
 least threshold bases. Specify multiple integer values separated\
 by ','")
 	parser.add_argument('-b', '--bedFile', required=False,
+						default=BED)
+	parser.add_argument('-o', '--output_prefix', required=True,
+						help="Prefix of output folder.\nSelections allowed: snv, rna, cnv",
+						choices=['snv', 'rna', 'cnv'],
 						default=BED)
 
 ###########################################################################
