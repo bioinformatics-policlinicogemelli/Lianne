@@ -429,11 +429,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	ncpus = 1
 	mem = '1g'
 
+	# command line inside the sh job
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'cvLaunch')
 	par = build_param_sh(pathStd)
 	cv_sh = par+'\n\n'
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
-	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e luciano.giaco@policlinicogemelli.it'
 
 	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh')
 
