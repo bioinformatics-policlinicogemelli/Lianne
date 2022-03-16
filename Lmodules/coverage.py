@@ -142,8 +142,7 @@ by ','")
 						default=BED)
 	parser.add_argument('-o', '--output_prefix', required=True,
 						help="Prefix of output folder.\nSelections allowed: snv, rna, cnv",
-						choices=['snv', 'rna', 'cnv'],
-						default=BED)
+						choices=['snv', 'rna', 'cnv'])
 
 ###########################################################################
 
