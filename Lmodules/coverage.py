@@ -73,6 +73,7 @@ def manage_out_dir(ot):
 	cwd = os.getcwd()
 	out_dir = os.path.join(cwd, prx+'coverage')
 
+	# making dir and move inside
 	try:
 		print('[INFO] Making '+out_dir)
 		os.mkdir(out_dir, mode = 0o755)
