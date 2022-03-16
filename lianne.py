@@ -467,7 +467,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	ncpus = 2
 	mem = '5g'
 
-	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'lianne_vh')
 	par = build_param_sh(pathStd)
 
 	coverage_out = os.path.join(out_localApp, 'coverage')
