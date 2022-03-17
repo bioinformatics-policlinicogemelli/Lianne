@@ -54,7 +54,7 @@ def mosdepth_cl(bedFile, threshold, prefix, inBam):
 
 	return m_cl
 
-def manage_out_dir(ot):
+def manage_out_dir(ot, prefix):
 	
 	# ot: snv or cnv or rna
 
@@ -111,7 +111,7 @@ def main(inBam, threshold, bedFile, ot):
 
 	################ MANAGE DIRECTORY
 
-	manage_out_dir(ot)
+	manage_out_dir(ot, prefix)
 
 
 	############## BUILD COMMAND LINE
@@ -140,7 +140,7 @@ least threshold bases. Specify multiple integer values separated\
 by ','")
 	parser.add_argument('-b', '--bedFile', required=False,
 						default=BED)
-	parser.add_argument('-o', '--output_prefix', required=True,
+	parser.add_argument('-p', '--output_prefix', required=True,
 						help="Prefix of output folder.\nSelections allowed: snv, rna, cnv",
 						choices=['snv', 'rna', 'cnv'])
 

@@ -24,15 +24,15 @@ def main(email, out_localApp, debug, ot):
 
 	par = '#! /bin/bash\n\
 \n\
-#PBS -o /data/novaseq_results/'+out_localApp+'/stdout_coverage\n\
-#PBS -e /data/novaseq_results/'+out_localApp+'/stderr_coverage\n\
+#PBS -o '+out_localApp+'/stdout_coverage\n\
+#PBS -e '+out_localApp+'/stderr_coverage\n\
 #PBS -l select=1:ncpus=2:mem=5g\n'
 	if email == 'noEmail':
 		pass 
 	else:
 		par = par+"#PBS -M "+email+"\n"
 		par = par+"#PBS -m ae\n"
-	par = par+"#PBS -N lianne_coverage\n\
+	par = par+"#PBS -N lianne_"+ot+"Coverage\n\
 #PBS -q workq\n\n"
 
 
@@ -49,7 +49,7 @@ def main(email, out_localApp, debug, ot):
 	
 	# write coverage sh
 	
-	coverage_file_run = os.path.join(out_localApp, 'coverage_run.sh')
+	coverage_file_run = os.path.join(out_localApp, ot+'Coverage_run.sh')
 
 	# retrieve bam file path for coverage analysis
 	if ot == 'snv':
@@ -74,7 +74,7 @@ def main(email, out_localApp, debug, ot):
 		sh = open(coverage_file_run, 'w')
 		sh.write(dr_sh)
 		for b in bam_list:
-			sh.write('python3 '+COV_MODULE+' -i '+b+'\n')
+			sh.write('python3 '+COV_MODULE+' -i '+b+' -p '+ot+'\n')
 		sh.close()
 		jobid2 = subprocess.run(['qsub', coverage_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
@@ -83,7 +83,7 @@ def main(email, out_localApp, debug, ot):
 		print('[DEBUG] coverage_run.sh file contains:')
 		print(dr_sh)
 		for b in bam_list:
-			print('python3 '+COV_MODULE+' -i '+b)
+			print('python3 '+COV_MODULE+' -i '+b+' -p '+ot)
 
 
 if __name__ == '__main__':
@@ -100,7 +100,7 @@ if __name__ == '__main__':
 	parser.add_argument('-d', '--debug', required=False,
 						action='store_true',
 						help='Run the script in debug mode\nNo jobs will be send\nNo file will be written - Default=False')
-	parser.add_argument('-o', '--output_prefix', required=True,
+	parser.add_argument('-p', '--output_prefix', required=True,
 						help="Prefix of output folder.\nSelections allowed: snv, rna, cnv",
 						choices=['snv', 'rna', 'cnv'])
 
