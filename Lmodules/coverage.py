@@ -134,7 +134,7 @@ check for coverage at different reads depths. It returns a xlsx and txt file')
 	parser.add_argument('-i', '--inBam', required=True,
 						help='Absolute path file of bam')
 	parser.add_argument('-t', '--threshold', required=False,
-						default='5,10,50,100,250,500',
+						default='50,100,250,500',
 						help="for each interval in bed file, write number of bases covered by at\
 least threshold bases. Specify multiple integer values separated\
 by ','")
