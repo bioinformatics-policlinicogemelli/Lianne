@@ -1,5 +1,11 @@
 ######### 2022.01.14
 
+1. Fixed bug for coverage and varhound jobs
+2. Added coverage for rna and cnv
+3. added flag for FastQC analysis
+
+######### 2022.01.14
+
 1. Fixed bug in normpath for runInput path
 
 ######### 2022.01.12
