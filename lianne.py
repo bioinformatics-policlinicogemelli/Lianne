@@ -472,7 +472,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'lianne_vh')
 	par = build_param_sh(pathStd)
 
-	coverage_out = os.path.join(out_localApp, 'coverage')
+	coverage_out_snv = os.path.join(out_localApp, 'snv_coverage')
+	coverage_out_rna = os.path.join(out_localApp, 'rna_coverage')
+	coverage_out_cnv = os.path.join(out_localApp, 'cnv_coverage')
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
@@ -481,7 +483,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'cd '+LIANNE_FOLDER+'\n'
-	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out_snv+' \n'
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out_rna+'\n'
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out_cnv+'\n'
 
 
 
