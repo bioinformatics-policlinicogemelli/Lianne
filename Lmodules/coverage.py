@@ -15,7 +15,7 @@
 #    
 # Version
 # --------------
-version = "0.1.0"
+version = "1.1"
 ###############################################
 
 import openpyxl as px
@@ -54,7 +54,52 @@ def mosdepth_cl(bedFile, threshold, prefix, inBam):
 
 	return m_cl
 
-def main(inBam, threshold, bedFile):
+def manage_out_dir(ot, prefix):
+	
+	# ot: snv or cnv or rna
+
+	# coverage dir
+	if ot == 'snv':
+		prx = 'snv_'
+	elif ot == 'rna':
+		prx = 'rna_'
+	elif ot == 'cnv':
+		prx = 'cnv_'
+	else:
+		print('[ERROR] Prefix coverage folder out not defined')
+		print('[INFO] Exit')
+		os.sys.exit()
+
+	cwd = os.getcwd()
+	out_dir = os.path.join(cwd, prx+'coverage')
+
+	# making dir and move inside
+	try:
+		print('[INFO] Making '+out_dir)
+		os.mkdir(out_dir, mode = 0o755)
+		print('[INFO] Directory '+out_dir+' created')
+		print('[INFO] Moving '+out_dir)
+		os.chdir(out_dir)
+	except FileExistsError:
+		print('[INFO] Directory '+out_dir+' already exists')
+		print('[INFO] Moving '+out_dir)
+		os.chdir(out_dir)
+
+	# sample dir
+	sample_dir = os.path.join(out_dir, prefix)
+
+	try:
+		print('[INFO] Making '+sample_dir)
+		os.mkdir(sample_dir, mode = 0o755)
+		print('[INFO] Directory '+sample_dir+' created')
+		print('[INFO] Moving '+sample_dir)
+		os.chdir(sample_dir)
+	except FileExistsError:
+		print('[INFO] Directory '+sample_dir+' already exists')
+		print('[INFO] Moving '+sample_dir)
+		os.chdir(sample_dir)
+
+def main(inBam, threshold, bedFile, ot):
 
 	################### CONTROL FILES
 	
@@ -64,29 +109,9 @@ def main(inBam, threshold, bedFile):
 	if bedFile != BED:
 		checkFile(bedFile)
 
-
 	################ MANAGE DIRECTORY
 
-	# coverage dir
-	cwd = os.getcwd()
-	out_dir = os.path.join(cwd, 'coverage')
-
-	try:
-		os.mkdir(out_dir, mode = 0o755)
-		os.chdir(out_dir)
-	except FileExistsError:
-		# directory already exists
-		os.chdir(out_dir)
-
-	# sample dir
-	sample_dir = os.path.join(out_dir, prefix)
-
-	try:
-		os.mkdir(sample_dir, mode = 0o755)
-		os.chdir(sample_dir)
-	except FileExistsError:
-		# directory already exists
-		os.chdir(sample_dir)
+	manage_out_dir(ot, prefix)
 
 
 	############## BUILD COMMAND LINE
@@ -115,6 +140,9 @@ least threshold bases. Specify multiple integer values separated\
 by ','")
 	parser.add_argument('-b', '--bedFile', required=False,
 						default=BED)
+	parser.add_argument('-p', '--output_prefix', required=True,
+						help="Prefix of output folder.\nSelections allowed: snv, rna, cnv",
+						choices=['snv', 'rna', 'cnv'])
 
 ###########################################################################
 
@@ -123,9 +151,10 @@ by ','")
 	inBam = args.inBam
 	threshold = args.threshold
 	bedFile = args.bedFile
+	ot = args.output_prefix
 
 
 ###########################################################################
 
-	main(inBam, threshold, bedFile)
+	main(inBam, threshold, bedFile, ot)
 

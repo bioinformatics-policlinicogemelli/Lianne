@@ -4,7 +4,7 @@
 # NAME: lianne.py
 # AUTHOR: Luciano Giaco'
 # Date: 06/07/2021
-version = "0.1"
+version = "1.0"
 # ===================================
 
 
@@ -172,6 +172,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	tail = get_folderOut(runInput)
 	print('TAIL')
 	print(tail)
+	out_localApp = os.path.join(RESULTS, tail)
+	if os.path.exists(out_localApp):
+		print('[INFO] path results already exists')
+		print('[INFO] check the path: '+out_localApp)
+		print('[INFO] exit')
+		os.sys.exit()
 	################
 	# DEMULTIPLEXING
 
@@ -243,8 +249,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		# Capture the job ID for qsub hold
 		jobid1 = subprocess.run(['qsub', d_file], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid1_str = jobid1.stdout
-		print('[INFO] Queue:')
-		subprocess.run(['qstat'])
+		
 	else:
 		print('[DEBUG] sh file written in foder: ')
 		print(d_file)
@@ -259,7 +264,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 	# path management
 	
-	out_localApp = os.path.join(RESULTS, tail)
+	
 	select = 2
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'LocalApp')
 	par = build_param_sh(pathStd)
@@ -284,7 +289,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(dr_file, 'w')
 		sh.write(dr_sh)
 		sh.close()
-
+		print('[INFO] Sending '+dr_file)
 		# send job
 		jobid2 = subprocess.run(['qsub', dr_file], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid2_str = jobid2.stdout
@@ -335,6 +340,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		sh = open(cgw_file, 'w')
 		sh.write(dr_sh)
 		sh.close()
+		print('[INFO] Sending '+cgw_file)
 		dependencyID = 'depend=afterany:'+jobid1_str
 		jobid2 = subprocess.run(['qsub', '-W', dependencyID, cgw_file], stdout=subprocess.PIPE, universal_newlines=True)
 	else:
@@ -349,47 +355,48 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	###############
 	# FastQC
 
-	# pbs parameters
-	select = 1
-	ncpus = 10
-	mem = '20g'
-	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'FastQC')
-	par = build_param_sh(parameters)
+	if fastqc is True:
+		# pbs parameters
+		select = 1
+		ncpus = 10
+		mem = '20g'
+		parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'FastQC')
+		par = build_param_sh(parameters)
 
-	dr_cl = 'module load anaconda/3\n'
-	dr_cl = dr_cl+'init bash\n'
-	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
-	dr_cl = dr_cl+'\n'
-	dr_cl = dr_cl+'\n'
-	
-	# Set folder where Fastq are located
-	# in the Illumina local app output folder
-	# and append all FastQC call
-	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration/*/*.fastq.gz')
-	print(tmp_fastq)
-	print(fastq_folder)
-	
-	fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
-	sh_cmd = fastqc_path+' -f '+fastq_folder#+' -t '+tmp_path
+		dr_cl = 'module load anaconda/3\n'
+		dr_cl = dr_cl+'init bash\n'
+		dr_cl = dr_cl+'source ~/.bashrc\n'
+		dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+		dr_cl = dr_cl+'\n'
+		dr_cl = dr_cl+'\n'
+		
+		# Set folder where Fastq are located
+		# in the Illumina local app output folder
+		# and append all FastQC call
+		fastq_folder = os.path.join(out_localApp, 'Logs_Intermediates/FastqGeneration/*/*.fastq.gz')
+		
+		fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
+		sh_cmd = fastqc_path+' -f '+fastq_folder#+' -t '+tmp_path
 
-	dr_sh = par+'\n\n'+dr_cl+sh_cmd
-	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
-	
+		dr_sh = par+'\n\n'+dr_cl+sh_cmd
+		FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
+		
 
-	if debug is False:
-		# build sh file
-		sh = open(FastQC_file_run, 'w')
-		sh.write(dr_sh)
-		sh.close()
-		dependencyID = 'depend=afterany:'+jobid2_str
-		jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		if debug is False:
+			# build sh file
+			sh = open(FastQC_file_run, 'w')
+			sh.write(dr_sh)
+			sh.close()
+			dependencyID = 'depend=afterany:'+jobid2_str
+			jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		else:
+			print('[DEBUG] FastQC.sh file written in foder: ')
+			print(FastQC_file_run)
+			print('[DEBUG] FastQC.sh file contains:')
+			print(dr_sh)
+			print(par)
 	else:
-		print('[DEBUG] FastQC.sh file written in foder: ')
-		print(FastQC_file_run)
-		print('[DEBUG] FastQC.sh file contains:')
-		print(dr_sh)
-		print(par)
+		pass
 
 
 	
@@ -423,19 +430,23 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	ncpus = 1
 	mem = '1g'
 
+	# command line inside the sh job
 	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'cvLaunch')
 	par = build_param_sh(pathStd)
 	cv_sh = par+'\n\n'
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
-	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e '+email+' -p snv\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e '+email+' -p rna\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e '+email+' -p cnv\n'
 
-	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh\n')
+	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh')
 
 
 	if debug is False:
 		sh = open(cvLaunch, 'w')
 		sh.write(cv_sh)
 		sh.close()
+		print('[INFO] Sending '+cvLaunch)
 		dependencyID = 'depend=afterany:'+jobid2_str
 		jobid4 = subprocess.run(['qsub', '-W', dependencyID, cvLaunch], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid4_str = jobid4.stdout
@@ -449,7 +460,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		jobid5 = subprocess.run(['python3', '/data/hpc-data/shared/pipelines/lianne/Lmodules/cvLaunch.py', '-o', out_localApp, '-d'], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid5_str = jobid5.stdout
 		print(jobid5_str)
-	os.sys.exit()
+	
 
 	###############
 	# VarHound
@@ -459,10 +470,12 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	ncpus = 2
 	mem = '5g'
 
-	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'varhound')
+	pathStd = pbs_parameters(out_localApp, select, ncpus, mem, email, sendMode, name, queue, 'lianne_vh')
 	par = build_param_sh(pathStd)
 
-	coverage_out = os.path.join(out_localApp, 'coverage')
+	coverage_out_snv = os.path.join(out_localApp, 'snv_coverage')
+	coverage_out_rna = os.path.join(out_localApp, 'rna_coverage')
+	coverage_out_cnv = os.path.join(out_localApp, 'cnv_coverage')
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
@@ -471,16 +484,19 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'cd '+LIANNE_FOLDER+'\n'
-	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out_snv+' \n'
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out_rna+'\n'
+	dr_cl = dr_cl+'python3 VarHound/vhLaunch.py '+coverage_out_cnv+'\n'
 
 
 
-	varhound_file_run = os.path.join(out_localApp, 'varhound_run.sh')
+	varhound_file_run = os.path.join(tmp_path, 'varhound_run.sh')
 
 	if debug is False:
 		sh = open(varhound_file_run, 'w')
 		sh.write(dr_cl)
 		sh.close()
+		print('[INFO] Sending '+varhound_file_run)
 		dependencyID = 'depend=afterany:'+jobid4_str
 		jobid5 = subprocess.run(['qsub', '-W', dependencyID, varhound_file_run], stdout=subprocess.PIPE, universal_newlines=True)
 		jobid5_str = jobid5.stdout
@@ -490,6 +506,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		print('[DEBUG] varhound_run.sh file contains:')
 		print(dr_cl)
 
+	print('[INFO] Queue:')
+	subprocess.run(['qstat'])
+	os.sys.exit()
 
 	
 	
@@ -543,6 +562,9 @@ if __name__ == '__main__':
 	parser.add_argument('-d', '--debug', required=False,
 						action='store_true',
 						help='Run the script in debug mode\nNo jobs will be send\nNo file will be written - Default=False')
+	parser.add_argument('-f', '--fastqc', required=False,
+						action='store_false',
+						help='Perform FastQC analysis on fastq files - Default=False')
 
 
 	args = parser.parse_args()
@@ -555,5 +577,6 @@ if __name__ == '__main__':
 	name = args.name
 	queue = args.queue
 	debug = args.debug
+	fastqc = args.fastqc
 
-	main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug)
+	main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fastqc)
