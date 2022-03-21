@@ -355,47 +355,48 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	###############
 	# FastQC
 
-	# pbs parameters
-	select = 1
-	ncpus = 10
-	mem = '20g'
-	parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'FastQC')
-	par = build_param_sh(parameters)
+	if fastqc is True:
+		# pbs parameters
+		select = 1
+		ncpus = 10
+		mem = '20g'
+		parameters = pbs_parameters(tmp_path, select, ncpus, mem, email, sendMode, name, queue, 'FastQC')
+		par = build_param_sh(parameters)
 
-	dr_cl = 'module load anaconda/3\n'
-	dr_cl = dr_cl+'init bash\n'
-	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
-	dr_cl = dr_cl+'\n'
-	dr_cl = dr_cl+'\n'
-	
-	# Set folder where Fastq are located
-	# in the Illumina local app output folder
-	# and append all FastQC call
-	fastq_folder = os.path.join(tmp_fastq, 'Logs_Intermediates/FastqGeneration/*/*.fastq.gz')
-	print(tmp_fastq)
-	print(fastq_folder)
-	
-	fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
-	sh_cmd = fastqc_path+' -f '+fastq_folder#+' -t '+tmp_path
+		dr_cl = 'module load anaconda/3\n'
+		dr_cl = dr_cl+'init bash\n'
+		dr_cl = dr_cl+'source ~/.bashrc\n'
+		dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+		dr_cl = dr_cl+'\n'
+		dr_cl = dr_cl+'\n'
+		
+		# Set folder where Fastq are located
+		# in the Illumina local app output folder
+		# and append all FastQC call
+		fastq_folder = os.path.join(out_localApp, 'Logs_Intermediates/FastqGeneration/*/*.fastq.gz')
+		
+		fastqc_path = os.path.join(LIANNE_FOLDER, 'Lmodules/fastqc.py')
+		sh_cmd = fastqc_path+' -f '+fastq_folder#+' -t '+tmp_path
 
-	dr_sh = par+'\n\n'+dr_cl+sh_cmd
-	FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
-	
+		dr_sh = par+'\n\n'+dr_cl+sh_cmd
+		FastQC_file_run = os.path.join(tmp_path, 'FastQC_run.sh')
+		
 
-	if debug is False:
-		# build sh file
-		sh = open(FastQC_file_run, 'w')
-		sh.write(dr_sh)
-		sh.close()
-		dependencyID = 'depend=afterany:'+jobid2_str
-		# jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		if debug is False:
+			# build sh file
+			sh = open(FastQC_file_run, 'w')
+			sh.write(dr_sh)
+			sh.close()
+			dependencyID = 'depend=afterany:'+jobid2_str
+			jobid3 = subprocess.run(['qsub', '-W', dependencyID, FastQC_file_run], stdout=subprocess.PIPE, universal_newlines=True)
+		else:
+			print('[DEBUG] FastQC.sh file written in foder: ')
+			print(FastQC_file_run)
+			print('[DEBUG] FastQC.sh file contains:')
+			print(dr_sh)
+			print(par)
 	else:
-		print('[DEBUG] FastQC.sh file written in foder: ')
-		print(FastQC_file_run)
-		print('[DEBUG] FastQC.sh file contains:')
-		print(dr_sh)
-		print(par)
+		pass
 
 
 	
@@ -434,9 +435,9 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	par = build_param_sh(pathStd)
 	cv_sh = par+'\n\n'
 	cv_sh = cv_sh+'cd '+LIANNE_FOLDER+'\n'
-	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e luciano.giaco@policlinicogemelli.it -p snv\n'
-	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e luciano.giaco@policlinicogemelli.it -p rna\n'
-	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e luciano.giaco@policlinicogemelli.it -p cnv\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e '+email+' -p snv\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e '+email+' -p rna\n'
+	cv_sh = cv_sh+'python3 Lmodules/cvLaunch.py -o '+out_localApp+' -e '+email+' -p cnv\n'
 
 	cvLaunch = os.path.join(tmp_path, 'cvLaunch.sh')
 
@@ -561,6 +562,9 @@ if __name__ == '__main__':
 	parser.add_argument('-d', '--debug', required=False,
 						action='store_true',
 						help='Run the script in debug mode\nNo jobs will be send\nNo file will be written - Default=False')
+	parser.add_argument('-f', '--fastqc', required=False,
+						action='store_false',
+						help='Perform FastQC analysis on fastq files - Default=False')
 
 
 	args = parser.parse_args()
@@ -573,5 +577,6 @@ if __name__ == '__main__':
 	name = args.name
 	queue = args.queue
 	debug = args.debug
+	fastqc = args.fastqc
 
-	main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug)
+	main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fastqc)
