@@ -4,7 +4,7 @@
 # NAME: lianne.py
 # AUTHOR: Luciano Giaco'
 # Date: 06/07/2021
-version = "0.1"
+version = "1.0"
 # ===================================
 
 
