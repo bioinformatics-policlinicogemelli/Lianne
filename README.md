@@ -20,12 +20,13 @@ optional arguments:
   -h, --help            show this help message and exit
   -i RUNINPUT, --runInput RUNINPUT
                         NovaSeq output sequencing path
-  -l1 SELECT, --select SELECT
+  -l_select SELECT, --select SELECT
                         Select the number of chunks to send on PBS cluser -
                         Default=1
-  -l2 NCPUS, --ncpus NCPUS
+  -l_ncpus NCPUS, --ncpus NCPUS
                         Select the number of ncpus to require - Default=24
-  -l3 MEM, --mem MEM    Select the amount of memory to require - Default=128
+  -l_mem MEM, --mem MEM
+                        Select the amount of memory to require - Default=128
   -e EMAIL, --email EMAIL
                         Insert the email -
                         Default=luciano.giaco@policlinicogemelli.it
@@ -36,6 +37,7 @@ optional arguments:
                         Insert the queue to send job - Default=workq
   -d, --debug           Run the script in debug mode No jobs will be send No
                         file will be written - Default=False
+  -f, --fastqc          Perform FastQC analysis on fastq files - Default=False
 ```
 
 ## Steps
