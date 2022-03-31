@@ -28,6 +28,8 @@ TMP = config.get('path', 'TMP')
 LOCAL_APP = config.get('path', 'LOCAL_APP')
 D_RESOUCES = config.get('path', 'D_RESOUCES')
 LIANNE_FOLDER = config.get('path', 'LIANNE_FOLDER')
+CGWRunUploader = config.get('path', 'CGWRunUploader')
+lianne_env = config.get('path', 'lianne_env')
 COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
 
 
@@ -332,7 +334,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fast
 
 
 	dr_cl = 'module load corretto/8.292.10.1\n'
-	dr_cl = dr_cl+'cd /data/hpc-share/illumina/test/pdx/CGWRunUploader\n'
+	dr_cl = dr_cl+'cd '+CGWRunUploader+'\n'
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'java -jar '
 	dr_cl = dr_cl+'-Dloader.main=com.pdx.commandLine.ApplicationCommandLine RunUploader-1.13.jar '
@@ -376,7 +378,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fast
 		dr_cl = 'module load anaconda/3\n'
 		dr_cl = dr_cl+'init bash\n'
 		dr_cl = dr_cl+'source ~/.bashrc\n'
-		dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+		dr_cl = dr_cl+'conda activate '+lianne_env+'\n'
 		dr_cl = dr_cl+'\n'
 		dr_cl = dr_cl+'\n'
 		
@@ -425,7 +427,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fast
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'conda activate '+lianne_env+'\n'
 	dr_cl = dr_cl+'cd '+out_localApp
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
@@ -489,7 +491,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fast
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'conda activate '+lianne_env+'\n'
 	dr_cl = dr_cl+'cd '+out_localApp
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
@@ -530,13 +532,6 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fast
 	# seq details
 	
 	make_seq_details.main(samplesheet)
-
-	
-	# build 
-	# tmp_fastq
-
-	################
-	# 	
 
 
 
