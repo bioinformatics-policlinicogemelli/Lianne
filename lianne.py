@@ -12,15 +12,24 @@ import os
 import argparse
 import subprocess
 import make_seq_details
+from configparser import ConfigParser
 from shutil import copyfile
 
-# GLOBAL PATH
-RESULTS = '/data/novaseq_results/'
-TMP = '/data/novaseq_results/tmp'
-LOCAL_APP = '/apps/trusight/2.2.0'
-D_RESOUCES = '/apps/trusight/2.2.0/resources'
-LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
+CONF = 'conf/confPath.ini'
+
+# instantiate
+config = ConfigParser()
+
+# parse existing file
+# read config file
+configFile = config.read(CONF)
+RESULTS = config.get('path', 'RESULTS')
+TMP = config.get('path', 'TMP')
+LOCAL_APP = config.get('path', 'LOCAL_APP')
+D_RESOUCES = config.get('path', 'D_RESOUCES')
+LIANNE_FOLDER = config.get('path', 'LIANNE_FOLDER')
 COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
+
 
 
 #####################################
@@ -162,13 +171,14 @@ def localApp_cl(out_localApp, runInput, samplesheet):
 
 	return(dr_cl)
 
+
 ####################
 ##  --> MAIN <--  ##
 ####################
 
-def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
-	
-	
+def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fastqc):
+
+
 	tail = get_folderOut(runInput)
 	print('TAIL')
 	print(tail)
