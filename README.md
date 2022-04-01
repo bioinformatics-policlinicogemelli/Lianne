@@ -4,9 +4,23 @@
 
 This application manage the Bioinformatic workflow for **"Programma di profilazione genomica dei tumori FPG500**
 
-It's designed for the analysis of panel Illumina TruSight Oncology 500 sequenced using the Illumina Novaseq6000 sequencer
+It's designed for the analysis of panel Illumina TruSight Oncology 500 sequenced using the Illumina Novaseq6000 sequencer.
 
-Lianne manage 
+The Variant calling is performed using Illumina Local App and uploaded on PierianDX Clinical Genomics Workspace (CGW) for the variant interpretation.
+For these steps is compulsory to have an agreement with Illumina for the Lacal App usage and a licensed account on PierianDX.
+
+It is also use Lianne for coverage analysis using only the analysis coverage jobs 
+
+All sh scripts are designed for PBS scheduler, if it doesn't available on your system the scripts can be used deleting the PBS parameters part
+
+## Requirements
+
+Lianne System works in Conda environment, to install Conda follow: 
+It also use **Singularity v3.7.4** for the Illumina Local App
+
+The conda packages to install are listed in *conda_packages_list.txt*
+
+
 ## Usage
 
 
