@@ -13,15 +13,40 @@ It is also use Lianne for coverage analysis using only the analysis coverage job
 
 All sh scripts are designed for PBS scheduler, if it doesn't available on your system the scripts can be used deleting the PBS parameters part
 
+
+
 ## Requirements
 
+### Conda
+
 Lianne System works in Conda environment, to install Conda follow: 
-It also use **Singularity v3.7.4** for the Illumina Local App
 
 The conda packages to install are listed in *conda_packages_list.txt*
 
+### Singularity
+
+It also use **Singularity v3.7.4** for the Illumina Local App
+
+
+### VarHound
+
+The coverage analysis use VarHound available on GitHub at:
+
+`https://github.com/fernandoPalluzzi/VarHound`
+
+
+
+
 
 ## Usage
+
+### First usage
+
+Insert the absolute path of the confPath.ini file in the CONF variable at the beginnign of the lianne.py file.
+
+```
+CONF = absolutePath/confPath.ini
+```
 
 
 ```
@@ -57,25 +82,25 @@ optional arguments:
 ## Steps
 
 Starting Lianne using the default parameters the scrit needs only the path folder of sequencer output.
-Lianne write the analysis on FPG cluster storage `/data/novaseq_results`
+
 
 ### Demultiplexing
 
-The demultiplexing results are stored in `/data/novaseq_results/tmp` with the following name analysis_runName where runName is the name of sequencing output folder
+The demultiplexing results are stored in a temporary folder with the following name *analysis_runName* where runName is the name of sequencing output folder
 
 Lianne performs:
 
-1. A check if the samplesheet exists. If the samplesheet not exists, Lianne returns a warning and exit. If the samplesheet has another name, Lianne makes a copy in `/data/novaseq_results/tmp` using **SampleSheet.csv as file name**
+1. A check if the samplesheet exists. If the samplesheet not exists, Lianne returns a warning and exit. If the samplesheet has another name, Lianne makes a copy in the temporary using **SampleSheet.csv as file name**
 
 2. Sends the demultiplexing job using Illumina TruSight Oncology 500 Local App with the following command line:
 
 ```
 #! /bin/bash 
 
-#PBS -o /data/novaseq_results/tmp/analysis_runName/stdout_demultiplex
-#PBS -e /data/novaseq_results/tmp/analysis_runName/stderr_demultiplex
+#PBS -o /temporaryFolder/analysis_runName/stdout_demultiplex
+#PBS -e /temporaryFolder/analysis_runName/stderr_demultiplex
 #PBS -l select=1:ncpus=24:mem=128g
-#PBS -M luciano.giaco@policlinicogemelli.it
+#PBS -M your@email.com
 #PBS -m ae
 #PBS -N lianne_demultiplex
 #PBS -q workq
@@ -85,11 +110,11 @@ module load openmpi/4.1.1
 cd /apps/trusight/2.2.0
 
 ./TruSight_Oncology_500_RUO.sh \
---analysisFolder /data/novaseq_results/tmp/analysis_runName/runName \
+--analysisFolder /temporaryFolder/analysis_runName/runName \
 --resourcesFolder /apps/trusight/2.2.0/resources \
 --runFolder /data/novaseq/Diagnostic/NovaSeq/SequencerOutput/runName \
 --engine singularity \
---sampleSheet /data/novaseq_results/tmp/analysis_runName/SampleSheet.csv \
+--sampleSheet /temporaryFolder/analysis_runName/SampleSheet.csv \
 --isNovaSeq \
 --demultiplexOnly
 ```
@@ -97,7 +122,7 @@ cd /apps/trusight/2.2.0
 
 ### Local App
 
-The Illumina TruSigth Oncology Local App v2.2.0 is used as backup analysis in local on FPG HPC cluster.
+The Illumina TruSigth Oncology Local App v2.2.0 is used for the local variant calling analysis.
 
 Lianne sends in queue the Local App using a sh script containing the following command line and PBS parameters:
 
@@ -107,7 +132,7 @@ Lianne sends in queue the Local App using a sh script containing the following c
 #PBS -o /data/novaseq_results/runName/stdout_LocalApp
 #PBS -e /data/novaseq_results/runName/stderr_LocalApp
 #PBS -l select=2:ncpus=24:mem=128g
-#PBS -M luciano.giaco@policlinicogemelli.it
+#PBS -M your@email.com
 #PBS -m ae
 #PBS -N lianne_LocalApp
 #PBS -q workq
@@ -121,7 +146,7 @@ cd /apps/trusight/2.2.0
 --resourcesFolder /apps/trusight/2.2.0/resources \
 --runFolder /data/novaseq/Diagnostic/NovaSeq/SequencerOutput/runName \
 --engine singularity \
---sampleSheet /data/novaseq_results/tmp/analysis_runName/SampleSheet.csv \
+--sampleSheet /temporaryFolder/analysis_runName/SampleSheet.csv \
 --isNovaSeq
 ```
 
