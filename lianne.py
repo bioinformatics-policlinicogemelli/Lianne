@@ -15,7 +15,7 @@ import make_seq_details
 from configparser import ConfigParser
 from shutil import copyfile
 
-CONF = '/data/hpc-data/shared/pipelines/lianne/conf/confPath.ini'
+CONF = '/Users/lucianogiaco/lianne/conf/confPath.ini'
 
 # instantiate
 config = ConfigParser()
@@ -518,9 +518,14 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fast
 		print('[DEBUG] varhound_run.sh file contains:')
 		print(dr_cl)
 
-	print('[INFO] Queue:')
-	subprocess.run(['qstat'])
-	os.sys.exit()
+
+	if debug is False:
+		print('[INFO] Queue:')
+		subprocess.run(['qstat'])
+		os.sys.exit()
+	else:
+		print('[INFO] exit')
+		os.sys.exit()
 
 	
 	
