@@ -558,6 +558,7 @@ if __name__ == '__main__':
 						default = '128g',
 						help='Select the amount of memory to require - Default=128')
 	parser.add_argument('-e', '--email', required=False,
+						default = 'your@email.com',
 						help='Insert the email - Default = your@email.com')
 	parser.add_argument('-m', '--sendMode', required=False,
 						default = 'ae',
