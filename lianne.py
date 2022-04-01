@@ -12,15 +12,26 @@ import os
 import argparse
 import subprocess
 import make_seq_details
+from configparser import ConfigParser
 from shutil import copyfile
 
-# GLOBAL PATH
-RESULTS = '/data/novaseq_results/'
-TMP = '/data/novaseq_results/tmp'
-LOCAL_APP = '/apps/trusight/2.2.0'
-D_RESOUCES = '/apps/trusight/2.2.0/resources'
-LIANNE_FOLDER = '/data/hpc-data/shared/pipelines/lianne/'
+CONF = '/data/hpc-data/shared/pipelines/lianne/conf/confPath.ini'
+
+# instantiate
+config = ConfigParser()
+
+# parse existing file
+# read config file
+configFile = config.read(CONF)
+RESULTS = config.get('path', 'RESULTS')
+TMP = config.get('path', 'TMP')
+LOCAL_APP = config.get('path', 'LOCAL_APP')
+D_RESOUCES = config.get('path', 'D_RESOUCES')
+LIANNE_FOLDER = config.get('path', 'LIANNE_FOLDER')
+CGWRunUploader = config.get('path', 'CGWRunUploader')
+lianne_env = config.get('path', 'lianne_env')
 COV_MODULE = os.path.join(LIANNE_FOLDER, 'Lmodules/coverage.py')
+
 
 
 #####################################
@@ -162,13 +173,14 @@ def localApp_cl(out_localApp, runInput, samplesheet):
 
 	return(dr_cl)
 
+
 ####################
 ##  --> MAIN <--  ##
 ####################
 
-def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
-	
-	
+def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug, fastqc):
+
+
 	tail = get_folderOut(runInput)
 	print('TAIL')
 	print(tail)
@@ -322,7 +334,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 
 
 	dr_cl = 'module load corretto/8.292.10.1\n'
-	dr_cl = dr_cl+'cd /data/hpc-share/illumina/test/pdx/CGWRunUploader\n'
+	dr_cl = dr_cl+'cd '+CGWRunUploader+'\n'
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'java -jar '
 	dr_cl = dr_cl+'-Dloader.main=com.pdx.commandLine.ApplicationCommandLine RunUploader-1.13.jar '
@@ -366,7 +378,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 		dr_cl = 'module load anaconda/3\n'
 		dr_cl = dr_cl+'init bash\n'
 		dr_cl = dr_cl+'source ~/.bashrc\n'
-		dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+		dr_cl = dr_cl+'conda activate '+lianne_env+'\n'
 		dr_cl = dr_cl+'\n'
 		dr_cl = dr_cl+'\n'
 		
@@ -415,7 +427,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'conda activate '+lianne_env+'\n'
 	dr_cl = dr_cl+'cd '+out_localApp
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
@@ -479,7 +491,7 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	dr_cl = 'module load anaconda/3\n'
 	dr_cl = dr_cl+'init bash\n'
 	dr_cl = dr_cl+'source ~/.bashrc\n'
-	dr_cl = dr_cl+'conda activate /data/hpc-data/shared/condaEnv/lianne\n'
+	dr_cl = dr_cl+'conda activate '+lianne_env+'\n'
 	dr_cl = dr_cl+'cd '+out_localApp
 	dr_cl = dr_cl+'\n'
 	dr_cl = dr_cl+'\n'
@@ -520,13 +532,6 @@ def main(runInput, select, ncpus, mem, email, sendMode, name, queue, debug):
 	# seq details
 	
 	make_seq_details.main(samplesheet)
-
-	
-	# build 
-	# tmp_fastq
-
-	################
-	# 	
 
 
 
