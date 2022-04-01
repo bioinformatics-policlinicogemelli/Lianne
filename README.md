@@ -48,6 +48,8 @@ Insert the absolute path of the confPath.ini file in the CONF variable at the be
 CONF = absolutePath/confPath.ini
 ```
 
+### Parameters and arguments
+
 
 ```
 usage: lianne.py [-h] -i RUNINPUT [-l1 SELECT] [-l2 NCPUS] [-l3 MEM]
@@ -149,6 +151,110 @@ cd /apps/trusight/2.2.0
 --sampleSheet /temporaryFolder/analysis_runName/SampleSheet.csv \
 --isNovaSeq
 ```
+
+### CGW_runUploader
+
+It needs to have a PiarianDX account
+
+```
+#! /bin/bash 
+
+#PBS -o /yourTmp/analysis_220314_A01423_0026_AHGGJNDRXY/stdout_cgwUpload
+#PBS -e /yourTmp/analysis_220314_A01423_0026_AHGGJNDRXY/stderr_cgwUpload
+#PBS -l select=1:ncpus=5:mem=80g
+#PBS -M your@email.com
+#PBS -m ae
+#PBS -N lianne_cgwUpload
+#PBS -q workq
+
+module load corretto/8.292.10.1
+cd /PathTo/CGWRunUploader/
+
+java -jar -Dloader.main=com.pdx.commandLine.ApplicationCommandLine RunUploader-1.13.jar --commandLine --runFolder=/yourTmp/analysis_220314_A01423_0026_AHGGJNDRXY/220314_A01423_0026_AHGGJNDRXY --sequencer=Illumina --sequencerFileType=fastq
+```
+
+### FastQC
+
+It expects the fastq files in:
+
+`/output_analysis/Logs_Intermediates/FastqGeneration/Sample_ID/sampleID.fastq.gz`
+
+
+
+```
+#! /bin/bash 
+
+#PBS -o /yourTmp/analysis_220314_A01423_0026_AHGGJNDRXY/stdout_FastQC
+#PBS -e /yourTmp/analysis_220314_A01423_0026_AHGGJNDRXY/stderr_FastQC
+#PBS -l select=1:ncpus=10:mem=20g
+#PBS -M your@email.com
+#PBS -m ae
+#PBS -N lianne_FastQC
+#PBS -q workq
+
+
+
+module load anaconda/3
+init bash
+source ~/.bashrc
+conda activate /PathTo/condaEnv/lianne
+
+
+/PathTo/lianne/Lmodules/fastqc.py -f /yourResults/220314_A01423_0026_AHGGJNDRXY/Logs_Intermediates/FastqGeneration/*/*.fastq.gz
+```
+
+### Coverage
+
+It expects the bam file as following:
+
+snv: /output_analysis/Logs_Intermediates/StitchedRealigned/Sample_ID/Sample_ID.bam
+cnv: /output_analysis/Logs_Intermediates/DnaRealignment/Sample_ID/Sample_ID.bam
+rna: /output_analysis/Logs_Intermediates/RnaMarkDuplicate/Sample_ID/Sample_ID.bam
+
+This analysis is performed using mosdepth package
+
+`https://github.com/brentp/mosdepth`
+
+
+```
+#! /bin/bash 
+
+#PBS -o /yourResults/220314_A01423_0026_AHGGJNDRXY/stdout_cvLaunch
+#PBS -e /yourResults/220314_A01423_0026_AHGGJNDRXY/stderr_cvLaunch
+#PBS -l select=1:ncpus=1:mem=1g
+#PBS -M your@email.com
+#PBS -m ae
+#PBS -N lianne_cvLaunch
+#PBS -q workq
+
+
+
+cd /PathTo/lianne/
+python3 Lmodules/cvLaunch.py -o /yourResults/220314_A01423_0026_AHGGJNDRXY -e your@email.com -p snv
+python3 Lmodules/cvLaunch.py -o /yourResults/220314_A01423_0026_AHGGJNDRXY -e your@email.com -p rna
+python3 Lmodules/cvLaunch.py -o /yourResults/220314_A01423_0026_AHGGJNDRXY -e your@email.com -p cnv
+```
+
+
+
+### VarHound
+
+This analysis is performed using R
+
+
+```
+module load anaconda/3
+init bash
+source ~/.bashrc
+conda activate /PathTo/condaEnv/lianne
+cd /yourResults/220314_A01423_0026_AHGGJNDRXY
+
+cd /PathTo/lianne/
+python3 VarHound/vhLaunch.py /yourResults/220314_A01423_0026_AHGGJNDRXY/snv_coverage 
+python3 VarHound/vhLaunch.py /yourResults/220314_A01423_0026_AHGGJNDRXY/rna_coverage
+python3 VarHound/vhLaunch.py /yourResults/220314_A01423_0026_AHGGJNDRXY/cnv_coverage
+```
+
 
 
 
