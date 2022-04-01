@@ -15,7 +15,7 @@ import make_seq_details
 from configparser import ConfigParser
 from shutil import copyfile
 
-CONF = 'conf/confPath.ini'
+CONF = '/data/hpc-data/shared/pipelines/lianne/conf/confPath.ini'
 
 # instantiate
 config = ConfigParser()
