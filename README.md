@@ -11,7 +11,7 @@ For these steps is compulsory to have an agreement with Illumina for the Lacal A
 
 It is also use Lianne for coverage analysis using only the analysis coverage jobs 
 
-All sh scripts are designed for PBS scheduler, if it doesn't available on your system the scripts can be used deleting the PBS parameters part
+All sh scripts are designed for PBS scheduler installed on CentOS operative system, if it doesn't available on your system the scripts can be used deleting the PBS parameters part
 
 
 
