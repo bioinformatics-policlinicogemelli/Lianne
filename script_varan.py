@@ -86,7 +86,6 @@ for _, row in input_df.iterrows():
 # Save output file
 output_file_name = input_file.stem + "_data_varan.tsv"
 output_path = Path("/data/data_storage/novaseq_results/research/CbioPortal/Input_file/file_input") / output_file_name
-output_path = Path("/Users/minakarimi/Desktop") / output_file_name
 
 output_df = pd.DataFrame(output_rows)
 output_df.to_csv(output_path, sep="\t", index=False)
